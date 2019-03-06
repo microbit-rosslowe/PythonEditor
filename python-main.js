@@ -262,6 +262,7 @@ function web_editor(config) {
         // If configured as experimental update editor background to indicate it
         if(config.flags.experimental) {
             EDITOR.ACE.renderer.scroller.style.backgroundImage = "url('static/img/experimental.png')";
+            $("#known-issues").removeClass('hidden');
         }
         // Configure the zoom related buttons.
         $("#zoom-in").click(function (e) {
