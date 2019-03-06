@@ -627,13 +627,14 @@ function web_editor(config) {
             doShare();
         });
         $("#command-help").click(function () {
+            $(".helpsupport_container").css("top", $("#command-help").offset().top + $("#toolbox").height() + 10);
+            $(".helpsupport_container").css("left", $("#command-help").offset().left);
             if($(".helpsupport_container").css("display") == "none"){
                 $(".helpsupport_container").css("display", "flex");
             } else {
                 $(".helpsupport_container").css("display", "none");
             }
         });
-        $(".helpsupport_container").hide();
     }
 
     // Extracts the query string and turns it into an object of key/value
