@@ -18,10 +18,70 @@ function pythonEditor(id) {
     editor.fontSizeStep = 4;
 
     // Represents the ACE based editor.
+    var langTools = ace.require("ace/ext/language_tools");
     var ACE = ace.edit(id);  // The editor is in the tag with the referenced id.
     ACE.setOptions({
-        enableSnippets: true  // Enable code snippets.
+        enableSnippets: true,  // Enable code snippets.
+        enableBasicAutocompletion: true, // Enable (automatic) autocompletion
+        enableLiveAutocompletion: true
     });
+    ACE.$blockScrolling = Infinity; // Silences the 'blockScrolling' warning
+
+    var staticWordCompleter = {
+        getCompletions: function(editor, session, pos, prefix, callback) {
+            var wordList = ['microbit.Image', 'microbit.MicroBitAnalogDigitalPin', 'microbit.MicroBitAnalogPin', 'microbit.MicroBitDigitalPin', 'microbit.MicroBitTouchPin', 'microbit.accelerometer', 'microbit.button_a', 'microbit.button_b', 'microbit.compass', 'microbit.display', 'microbit.i2c', 'microbit.panic', 'microbit.reset', 'microbit.running_time', 'microbit.sleep', 'microbit.spi', 'microbit.temperature', 'microbit.uart',
+
+            'Image', 'MicroBitAnalogDigitalPin', 'MicroBitAnalogPin', 'MicroBitDigitalPin', 'MicroBitTouchPin', 'accelerometer', 'button_a', 'button_b', 'compass', 'display', 'i2c', 'panic', 'reset', 'running_time', 'sleep', 'spi', 'temperature', 'uart',
+            
+            'button_a.get_presses', 'button_a.is_pressed', 'button_a.was_pressed',
+            'button_b.get_presses', 'button_b.is_pressed', 'button_b.was_pressed',
+
+            'MicroBitAnalogDigitalPin.read_analog', 'MicroBitAnalogDigitalPin.read_digital', 'MicroBitAnalogDigitalPin.set_analog_period', 'MicroBitAnalogDigitalPin.set_analog_period_microseconds', 'MicroBitAnalogDigitalPin.write_analog', 'MicroBitAnalogDigitalPin.write_digital',
+
+            'read_analog', 'read_digital', 'set_analog_period', 'set_analog_period_microseconds', 'write_analog', 'write_digital',
+
+            'MicroBitAnalogPin.read_analog', 'MicroBitAnalogPin.read_digital', 'MicroBitAnalogPin.set_analog_period', 'MicroBitAnalogPin.set_analog_period_microseconds', 'MicroBitAnalogPin.write_analog', 'MicroBitAnalogPin.write_digital',
+
+            'MicroBitDigitalPin.read_digital', 'MicroBitDigitalPin.write_digital',
+
+            'MicroBitTouchPin.is_touched', 'MicroBitTouchPin.read_analog', 'MicroBitTouchPin.read_digital', 'MicroBitTouchPin.set_analog_period', 'MicroBitTouchPin.set_analog_period_microseconds', 'MicroBitTouchPin.write_analog', 'MicroBitTouchPin.write_digital',
+
+            'Image.ALL_CLOCKS', 'Image.ANGRY', 'Image.ARROW_E', 'Image.ARROW_N', 'Image.ARROW_NE', 'Image.ARROW_NW', 'Image.ARROW_S', 'Image.ARROW_SE', 'Image.ARROW_SW', 'Image.ARROW_W', 'Image.ASLEEP', 'Image.BUTTERFLY', 'Image.CHESSBOARD', 'Image.CLOCK1', 'Image.CLOCK10', 'Image.CLOCK11', 'Image.CLOCK12', 'Image.CLOCK2', 'Image.CLOCK3', 'Image.CLOCK4', 'Image.CLOCK5', 'Image.CLOCK6', 'Image.CLOCK7', 'Image.CLOCK8', 'Image.CLOCK9', 'Image.CONFUSED', 'Image.COW', 'Image.DIAMOND', 'Image.DIAMOND_SMALL', 'Image.DUCK', 'Image.FABULOUS', 'Image.GHOST', 'Image.GIRAFFE', 'Image.HAPPY', 'Image.HEART', 'Image.HEART_SMALL', 'Image.HOUSE', 'Image.MEH', 'Image.MUSIC_CROTCHET', 'Image.MUSIC_QUAVER', 'Image.MUSIC_QUAVERS', 'Image.NO', 'Image.PACMAN', 'Image.PITCHFORK', 'Image.RABBIT', 'Image.ROLLERSKATE', 'Image.SAD', 'Image.SILLY', 'Image.SKULL', 'Image.SMILE', 'Image.SNAKE', 'Image.SQUARE', 'Image.SQUARE_SMALL', 'Image.STICKFIGURE', 'Image.SURPRISED', 'Image.SWORD', 'Image.TARGET', 'Image.TORTOISE', 'Image.TRIANGLE', 'Image.TRIANGLE_LEFT', 'Image.TSHIRT', 'Image.UMBRELLA', 'Image.XMAS', 'Image.YES',
+            
+            'display.clear', 'display.get_pixel', 'display.is_on', 'display.off', 'display.on', 'display.read_light_level', 'display.scroll', 'display.set_pixel', 'display.show',
+
+            'uart.any', 'uart.init', 'uart.read', 'uart.readall', 'uart.readline', 'uart.write',
+
+            'spi.init', 'spi.read', 'spi.write', 'spi.write_readinto',
+
+            'i2c.init', 'i2c.read', 'i2c.scan', 'i2c.write',
+
+            'accelerometer.current_gesture', 'accelerometer.get_gestures', 'accelerometer.get_values', 'accelerometer.get_x', 'accelerometer.get_y', 'accelerometer.get_z', 'accelerometer.was_gesture',
+
+            'compass.calibrate', 'compass.clear_calibration', 'compass.get_field_strength', 'compass.get_x', 'compass.get_y', 'compass.get_z', 'compass.heading', 'compass.is_calibrated',
+
+            'audio.play', 'audio.AudioFrame',
+
+            'machine.disable_irq', 'machine.enable_irq', 'machine.freq', 'machine.reset', 'machine.time_pulse_us', 'machine.unique_id',
+
+            'micropython.const', 'micropython.heap_lock', 'micropython.heap_unlock', 'micropython.kbd_intr', 'micropython.mem_info', 'micropython.opt_level', 'micropython.qstr_info', 'micropython.stack_use',
+
+            'music.BADDY', 'music.BA_DING', 'music.BIRTHDAY', 'music.BLUES', 'music.CHASE', 'music.DADADADUM', 'music.ENTERTAINER', 'music.FUNERAL', 'music.FUNK', 'music.JUMP_DOWN', 'music.JUMP_UP', 'music.NYAN', 'music.ODE', 'music.POWER_DOWN', 'music.POWER_UP', 'music.PRELUDE', 'music.PUNCHLINE', 'music.PYTHON', 'music.RINGTONE', 'music.WAWAWAWAA', 'music.WEDDING', 'music.get_tempo', 'music.pitch', 'music.play', 'music.reset', 'music.set_tempo', 'music.stop',
+
+            'speech.pronounce', 'speech.say', 'speech.sing', 'speech.translate',
+
+            'radio.RATE_1MBIT', 'radio.RATE_250KBIT', 'radio.RATE_2MBIT', 'radio.config', 'radio.off', 'radio.on', 'radio.receive', 'radio.receive_bytes', 'radio.receive_bytes_into', 'radio.receive_full', 'radio.reset', 'radio.send', 'radio.send_bytes'];
+            callback(null, wordList.map(function(word) {
+                return {
+                    caption: word,
+                    value: word,
+                    meta: "static"
+                };
+            }));
+        }
+    }
+    langTools.addCompleter(staticWordCompleter);
+    
     ACE.setTheme("ace/theme/kr_theme");  // Make it look nice.
     ACE.getSession().setMode("ace/mode/python");  // We're editing Python.
     ACE.getSession().setTabSize(4); // Tab=4 spaces.
