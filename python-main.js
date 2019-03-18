@@ -27,50 +27,12 @@ function pythonEditor(id) {
     });
     ACE.$blockScrolling = Infinity; // Silences the 'blockScrolling' warning
 
+    var horizontalWordList = populateWordList();
+
     var staticWordCompleter = {
         getCompletions: function(editor, session, pos, prefix, callback) {
-            var wordList = ['microbit.Image', 'microbit.MicroBitAnalogDigitalPin', 'microbit.MicroBitAnalogPin', 'microbit.MicroBitDigitalPin', 'microbit.MicroBitTouchPin', 'microbit.accelerometer', 'microbit.button_a', 'microbit.button_b', 'microbit.compass', 'microbit.display', 'microbit.i2c', 'microbit.panic', 'microbit.reset', 'microbit.running_time', 'microbit.sleep', 'microbit.spi', 'microbit.temperature', 'microbit.uart',
-
-            'Image', 'MicroBitAnalogDigitalPin', 'MicroBitAnalogPin', 'MicroBitDigitalPin', 'MicroBitTouchPin', 'accelerometer', 'button_a', 'button_b', 'compass', 'display', 'i2c', 'panic', 'reset', 'running_time', 'sleep', 'spi', 'temperature', 'uart',
+            var wordList = horizontalWordList;
             
-            'button_a.get_presses', 'button_a.is_pressed', 'button_a.was_pressed',
-            'button_b.get_presses', 'button_b.is_pressed', 'button_b.was_pressed',
-
-            'MicroBitAnalogDigitalPin.read_analog', 'MicroBitAnalogDigitalPin.read_digital', 'MicroBitAnalogDigitalPin.set_analog_period', 'MicroBitAnalogDigitalPin.set_analog_period_microseconds', 'MicroBitAnalogDigitalPin.write_analog', 'MicroBitAnalogDigitalPin.write_digital',
-
-            'read_analog', 'read_digital', 'set_analog_period', 'set_analog_period_microseconds', 'write_analog', 'write_digital',
-
-            'MicroBitAnalogPin.read_analog', 'MicroBitAnalogPin.read_digital', 'MicroBitAnalogPin.set_analog_period', 'MicroBitAnalogPin.set_analog_period_microseconds', 'MicroBitAnalogPin.write_analog', 'MicroBitAnalogPin.write_digital',
-
-            'MicroBitDigitalPin.read_digital', 'MicroBitDigitalPin.write_digital',
-
-            'MicroBitTouchPin.is_touched', 'MicroBitTouchPin.read_analog', 'MicroBitTouchPin.read_digital', 'MicroBitTouchPin.set_analog_period', 'MicroBitTouchPin.set_analog_period_microseconds', 'MicroBitTouchPin.write_analog', 'MicroBitTouchPin.write_digital',
-
-            'Image.ALL_CLOCKS', 'Image.ANGRY', 'Image.ARROW_E', 'Image.ARROW_N', 'Image.ARROW_NE', 'Image.ARROW_NW', 'Image.ARROW_S', 'Image.ARROW_SE', 'Image.ARROW_SW', 'Image.ARROW_W', 'Image.ASLEEP', 'Image.BUTTERFLY', 'Image.CHESSBOARD', 'Image.CLOCK1', 'Image.CLOCK10', 'Image.CLOCK11', 'Image.CLOCK12', 'Image.CLOCK2', 'Image.CLOCK3', 'Image.CLOCK4', 'Image.CLOCK5', 'Image.CLOCK6', 'Image.CLOCK7', 'Image.CLOCK8', 'Image.CLOCK9', 'Image.CONFUSED', 'Image.COW', 'Image.DIAMOND', 'Image.DIAMOND_SMALL', 'Image.DUCK', 'Image.FABULOUS', 'Image.GHOST', 'Image.GIRAFFE', 'Image.HAPPY', 'Image.HEART', 'Image.HEART_SMALL', 'Image.HOUSE', 'Image.MEH', 'Image.MUSIC_CROTCHET', 'Image.MUSIC_QUAVER', 'Image.MUSIC_QUAVERS', 'Image.NO', 'Image.PACMAN', 'Image.PITCHFORK', 'Image.RABBIT', 'Image.ROLLERSKATE', 'Image.SAD', 'Image.SILLY', 'Image.SKULL', 'Image.SMILE', 'Image.SNAKE', 'Image.SQUARE', 'Image.SQUARE_SMALL', 'Image.STICKFIGURE', 'Image.SURPRISED', 'Image.SWORD', 'Image.TARGET', 'Image.TORTOISE', 'Image.TRIANGLE', 'Image.TRIANGLE_LEFT', 'Image.TSHIRT', 'Image.UMBRELLA', 'Image.XMAS', 'Image.YES',
-            
-            'display.clear', 'display.get_pixel', 'display.is_on', 'display.off', 'display.on', 'display.read_light_level', 'display.scroll', 'display.set_pixel', 'display.show',
-
-            'uart.any', 'uart.init', 'uart.read', 'uart.readall', 'uart.readline', 'uart.write',
-
-            'spi.init', 'spi.read', 'spi.write', 'spi.write_readinto',
-
-            'i2c.init', 'i2c.read', 'i2c.scan', 'i2c.write',
-
-            'accelerometer.current_gesture', 'accelerometer.get_gestures', 'accelerometer.get_values', 'accelerometer.get_x', 'accelerometer.get_y', 'accelerometer.get_z', 'accelerometer.was_gesture',
-
-            'compass.calibrate', 'compass.clear_calibration', 'compass.get_field_strength', 'compass.get_x', 'compass.get_y', 'compass.get_z', 'compass.heading', 'compass.is_calibrated',
-
-            'audio.play', 'audio.AudioFrame',
-
-            'machine.disable_irq', 'machine.enable_irq', 'machine.freq', 'machine.reset', 'machine.time_pulse_us', 'machine.unique_id',
-
-            'micropython.const', 'micropython.heap_lock', 'micropython.heap_unlock', 'micropython.kbd_intr', 'micropython.mem_info', 'micropython.opt_level', 'micropython.qstr_info', 'micropython.stack_use',
-
-            'music.BADDY', 'music.BA_DING', 'music.BIRTHDAY', 'music.BLUES', 'music.CHASE', 'music.DADADADUM', 'music.ENTERTAINER', 'music.FUNERAL', 'music.FUNK', 'music.JUMP_DOWN', 'music.JUMP_UP', 'music.NYAN', 'music.ODE', 'music.POWER_DOWN', 'music.POWER_UP', 'music.PRELUDE', 'music.PUNCHLINE', 'music.PYTHON', 'music.RINGTONE', 'music.WAWAWAWAA', 'music.WEDDING', 'music.get_tempo', 'music.pitch', 'music.play', 'music.reset', 'music.set_tempo', 'music.stop',
-
-            'speech.pronounce', 'speech.say', 'speech.sing', 'speech.translate',
-
-            'radio.RATE_1MBIT', 'radio.RATE_250KBIT', 'radio.RATE_2MBIT', 'radio.config', 'radio.off', 'radio.on', 'radio.receive', 'radio.receive_bytes', 'radio.receive_bytes_into', 'radio.receive_full', 'radio.reset', 'radio.send', 'radio.send_bytes'];
             callback(null, wordList.map(function(word) {
                 return {
                     caption: word,
@@ -170,6 +132,67 @@ function pythonEditor(id) {
 
     return editor;
 }
+
+
+/*
+This code generates a list of words for the autocomplete.
+*/
+function populateWordList(){
+    var words = {
+        "microbit" : {
+            "Image" : ['ALL_CLOCKS', 'ANGRY', 'ARROW_E', 'ARROW_N', 'ARROW_NE', 'ARROW_NW', 'ARROW_S', 'ARROW_SE', 'ARROW_SW', 'ARROW_W', 'ASLEEP', 'BUTTERFLY', 'CHESSBOARD', 'CLOCK1', 'CLOCK10', 'CLOCK11', 'CLOCK12', 'CLOCK2', 'CLOCK3', 'CLOCK4', 'CLOCK5', 'CLOCK6', 'CLOCK7', 'CLOCK8', 'CLOCK9', 'CONFUSED', 'COW', 'DIAMOND', 'DIAMOND_SMALL', 'DUCK', 'FABULOUS', 'GHOST', 'GIRAFFE', 'HAPPY', 'HEART', 'HEART_SMALL', 'HOUSE', 'MEH', 'MUSIC_CROTCHET', 'MUSIC_QUAVER', 'MUSIC_QUAVERS', 'NO', 'PACMAN', 'PITCHFORK', 'RABBIT', 'ROLLERSKATE', 'SAD', 'SILLY', 'SKULL', 'SMILE', 'SNAKE', 'SQUARE', 'SQUARE_SMALL', 'STICKFIGURE', 'SURPRISED', 'SWORD', 'TARGET', 'TORTOISE', 'TRIANGLE', 'TRIANGLE_LEFT', 'TSHIRT', 'UMBRELLA', 'XMAS', 'YES'],
+            "MicroBitAnalogDigitalPin" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "MicroBitAnalogPin" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"], 
+            "MicroBitDigitalPin" : ["read_digital", "write_digital"],
+            "MicroBitTouchPin" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "accelerometer" : ["current_gesture", "get_gestures", "get_values", "get_x", "get_y", "get_z", "was_gesture"],
+            "button_a" : ["get_presses", "is_pressed", "was_pressed"],
+            "button_b" : ["get_presses", "is_pressed", "was_pressed"],
+            "compass" : ["calibrate", "clear_calibration", "get_field_strength", "get_x", "get_y", "get_z", "heading", "is_calibrated"],
+            "display" : ["clear", "get_pixel", "is_on", "off", "on", "read_light_level", "scroll", "set_pixel", "show"],
+            "i2c" : ["init", "read", "scan", "write"],
+            "panic" : "",
+            "reset" : "",
+            "running_time" : "",
+            "sleep" : "",
+            "spi" : ["init", "read", "write", "write_readinto"],
+            "temperature" : "",
+            "uart" : ["any", "init", "read", "readall", "readline", "write"]
+        },
+        "audio" : ["play", "AudioFrame"],
+        "machine" : ["disable_irq", "enable_irq", "freq", "reset", "time_pulse_us", "unique_id"],
+
+        "micropython" : ["const", "heap_lock", "heap_unlock", "kbd_intr", "mem_info", "opt_level", "qstr_info", "stack_use"],
+
+        "music" : ["BADDY", "BA_DING", "BIRTHDAY", "BLUES", "CHASE", "DADADADUM", "ENTERTAINER", "FUNERAL", "FUNK", "JUMP_DOWN", "JUMP_UP", "NYAN", "ODE", "POWER_DOWN", "POWER_UP", "PRELUDE", "PUNCHLINE", "PYTHON", "RINGTONE", "WAWAWAWAA", "WEDDING", "get_tempo", "pitch", "play", "reset", "set_temp", "stop"],
+
+        "speech" : ["pronounce", "say", "sing", "translate"],
+
+        "radio" : ["RATE_1MBIT", "RATE_250KBIT", "RATE_2MBIT", "config", "off", "on", "receive", "receive_bytes", "receive_bytes_into", "receive_full", "reset", "send", "send_bytes"]
+    };
+
+    var wordsHorizontal = [];
+    Object.keys(words).forEach(function(module){
+        wordsHorizontal.push(module);
+        if (Array.isArray(words[module])){
+            words[module].forEach(function(func){
+                wordsHorizontal.push(module + "." + func);
+            });
+        }else{
+            Object.keys(words[module]).forEach(function(sub){
+                wordsHorizontal.push(module + "." + sub);
+                if (Array.isArray(words[module][sub])){
+                    words[module][sub].forEach(function(func){
+                        wordsHorizontal.push(module + "." + sub + "." + func);
+                        wordsHorizontal.push(sub + "." + func);
+                    });
+                }
+            });
+        }
+    });
+    return (wordsHorizontal);
+}
+
 
 /*
 The following code contains the various functions that connect the behaviour of
