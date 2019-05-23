@@ -1,16 +1,76 @@
 // An editor needs to be instantiated *before* the tests are run so the
 // snippets are created so they can be referenced within the tests. Yay
 // JavaScript. :-(
+$('body').append('<div id="fooeditor"></div>');
 var faux_editor = pythonEditor('fooeditor');
 
+
+const targetUrl = "http://localhost:5000/editor.html";
+const downloadsDir = "/";
+const device = usbutils.fetchDevice(0xD28).Result;
+
+jest.setTimeout(250000);
 
 // Test suite for the pythonEditor object.
 describe("An editor for MicroPython on the BBC micro:bit:", function() {
 
+    describe("Puppeteer tests work correctly:", function() {
+
+        it("File system works correctly when loading files", async function() {
+            expect.assertions(1);
+            expect(await ImportTest.Run(targetUrl, downloadsDir, device)).toEqual({"dialog-test": false, "flash-test": null});
+        });
+
+        it("File system allows for the correct number of small files", async function() {
+            expect.assertions(1);
+            expect(await ChunksTest.Run(targetUrl, downloadsDir, device)).toEqual({"files-test": true, "flash-test": null});
+        });
+
+        it("File system works correctly when replacing main.py", async function() {
+            expect.assertions(1);
+            expect(await LoadTest.Run(targetUrl, downloadsDir, device)).toEqual({"dialog-test": true, "cancel-test": true, "accept-test": true, "files-test": true});
+        });
+
+        it("File system works correctly when adding a single, large file", async function() {
+            expect.assertions(1);
+            expect(await LargeTest.Run(targetUrl, downloadsDir, device)).toEqual({"loads-test": true, "flash-test": null});
+        });
+
+        it("File system rejects files that are too large", async function() {
+            expect.assertions(1);
+            expect(await ToolargeTest.Run(targetUrl, downloadsDir, device)).toEqual({"loads-test": true});
+        });
+
+        it("File system appropriately handles invalid files", async function() {
+            expect.assertions(1);
+            expect(await InvalidTest.Run(targetUrl, downloadsDir, device)).toEqual({"empty-py-test": true, "invalid-test": true});
+        });
+
+        it("File system can load old hex files (v1.0.1)", async function() {
+            expect.assertions(1);
+            expect(await OldTestA.Run(targetUrl, downloadsDir, device)).toEqual({"load-test": true, "flash-test": null});
+        });
+
+        it("File system can load old hex files (v0.9)", async function() {
+            expect.assertions(1);
+            expect(await OldTestB.Run(targetUrl, downloadsDir, device)).toEqual({"load-test": true, "flash-test": null});
+        });
+
+        it("File system correctly handles 'magic comment' with modules", async function() {
+            expect.assertions(1);
+            expect(await ModuleTest.Run(targetUrl, downloadsDir, device)).toEqual({"firstline-test": true, "secondline-test": true, "thirdline-test": true, "filename-test": true, "fourthline-test": true, "flash-test": null});
+        });
+    
+    });
+
     describe("The editor initialises as expected.", function() {
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor is associated with the referenced div.", function() {
@@ -57,9 +117,13 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
         var dom_editor;
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
             dom_editor = $('#editor');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("It's possible to set / get the code to be edited.", function() {
@@ -81,7 +145,7 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
         var mock;
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
 
             mock = {
@@ -91,6 +155,10 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
             spyOn(mock, 'handler');
             editor.on_change(mock.handler);
             editor.setCode('foo');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor calls the referenced function when the text changes.",
@@ -105,10 +173,14 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
         var snippetManager;
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
             snippetManager = ace.require("ace/snippets").snippetManager;
             spyOn(snippetManager, 'insertSnippet');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor returns all available snippet objects.", function() {
@@ -141,29 +213,33 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
                 ":00000001FF\n";
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor complains if the Python script is greater than 8k in length.", function() {
             var hex_fail = function() {
                 // Keep in mind the 4 Bytes header
                 var codeLen = (8 * 1024) - 4 + 1;
-                var result = microbitFs.addIntelHexAppendedScript(template_hex, new Array(codeLen + 1).join('a'));
+                var result = upyhex.injectPyStrIntoIntelHex(template_hex, new Array(codeLen + 1).join('a'));
             };
             expect(hex_fail).toThrowError(RangeError, 'Too long');
         });
 
         it("The editor is fine if the Python script is 8k in length.", function() {
             var codeLen = (8 * 1024) - 4;
-            var hexified = microbitFs.addIntelHexAppendedScript(template_hex, new Array(codeLen + 1).join('a'));
+            var hexified = upyhex.injectPyStrIntoIntelHex(template_hex, new Array(codeLen + 1).join('a'));
             expect(hexified).not.toBe(null);
         });
 
         it("A hex file is generated from the script and template firmware.",
            function() {
             editor.setCode('display.scroll("Hello")');
-            var result = microbitFs.addIntelHexAppendedScript(template_hex, editor.getCode());
+            var result = editor.getHexFile(template_hex);
             var expected = ":020000040000FA\n" +
                 ":1000000000400020ED530100295401002B54010051\n" +
                 ":020000040003F7\n" +
@@ -179,8 +255,12 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
         var editor;
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor converts from Intel's hex format to text", function() {
@@ -188,7 +268,7 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
                 ":10E000004D501700646973706C61792E7363726F81\n" +
                 ":10E010006C6C282248656C6C6F222900000000009F\n" +
                 ":00000001FF\n";
-            var result = microbitFs.getIntelHexAppendedScript(raw_hex);
+            var result = upyhex.extractPyStrFromIntelHex(raw_hex);
             var expected = 'display.scroll("Hello")';
             expect(result).toEqual(expected);
         });
@@ -203,7 +283,7 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
                 ":10E010006C6C282248656C6C6F222900000000009F\n" +
                 ":04000005000153EDB6\n" +
                 ":00000001FF";
-            var result = microbitFs.getIntelHexAppendedScript(raw_hex);
+            var result = upyhex.extractPyStrFromIntelHex(raw_hex);
             var expected = 'display.scroll("Hello")';
             expect(result).toEqual(expected);
         });
@@ -214,7 +294,7 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
                 ":04B2D0000D0100006C\n" +
                 ":04000005000153EDB6\n" +
                 ":00000001FF";
-            var result = microbitFs.getIntelHexAppendedScript(raw_hex);
+            var result = upyhex.extractPyStrFromIntelHex(raw_hex);
             var expected = '';
             expect(result).toEqual(expected);
         });
@@ -225,8 +305,12 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
         var editor;
 
         beforeEach(function() {
-            affix("#editor");
+            $('body').append('<div id="editor"></div>');
             editor = pythonEditor('editor');
+        });
+
+        afterEach(function() {
+            $('#editor').remove();
         });
 
         it("The editor encrypts plaintext to URL safe cyphertext with a passphrase.", function() {

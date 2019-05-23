@@ -10,4 +10,8 @@ Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 *.swp
+tests/puppeteer/UploadFiles/ChunksTest
+
+# Node
+node_modules/
 dist/*

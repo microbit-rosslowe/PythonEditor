@@ -18,35 +18,12 @@ function pythonEditor(id) {
     editor.fontSizeStep = 4;
 
     // Represents the ACE based editor.
-    var langTools = ace.require("ace/ext/language_tools");
     var ACE = ace.edit(id);  // The editor is in the tag with the referenced id.
     ACE.setOptions({
-        enableSnippets: true,  // Enable code snippets.
-        enableBasicAutocompletion: true, // Enable (automatic) autocompletion
-        enableLiveAutocompletion: true
+        enableSnippets: true  // Enable code snippets.
     });
-    ACE.$blockScrolling = Infinity; // Silences the 'blockScrolling' warning
-
-    var horizontalWordList = populateWordList();
-
-    var staticWordCompleter = {
-        identifierRegexps: [/[a-zA-Z_0-9\.\-\u00A2-\uFFFF]/],
-        getCompletions: function(editor, session, pos, prefix, callback) {
-            var wordList = horizontalWordList;
-            
-            callback(null, wordList.map(function(word) {
-                return {
-                    caption: word,
-                    value: word,
-                    meta: "static"
-                };
-            }));
-        }
-    }
-    langTools.addCompleter(staticWordCompleter);
-    
-    ACE.setTheme("ace/theme/kr_theme_legacy");  // Make it look nice.
-    ACE.getSession().setMode("ace/mode/python_microbit");  // We're editing Python.
+    ACE.setTheme("ace/theme/kr_theme");  // Make it look nice.
+    ACE.getSession().setMode("ace/mode/python");  // We're editing Python.
     ACE.getSession().setTabSize(4); // Tab=4 spaces.
     ACE.getSession().setUseSoftTabs(true); // Tabs are really spaces.
     ACE.setFontSize(editor.initialFontSize);
@@ -75,16 +52,21 @@ function pythonEditor(id) {
     // Return details of all the snippets this editor knows about.
     editor.getSnippets = function() {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        return snippetManager.snippetMap.python_microbit;
+        return snippetManager.snippetMap.python;
     };
 
     // Triggers a snippet by name in the editor.
     editor.triggerSnippet = function(snippet) {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        snippet = snippetManager.snippetNameMap.python_microbit[snippet];
+        snippet = snippetManager.snippetNameMap.python[snippet];
         if (snippet) {
             snippetManager.insertSnippet(ACE, snippet.content);
         }
+    };
+
+    // Generates a hex file containing the user's Python from the firmware.
+    editor.getHexFile = function(firmware) {
+        return upyhex.injectPyStrIntoIntelHex(firmware, this.getCode());
     };
 
     // Given a password and some plaintext, will return an encrypted version.
@@ -128,93 +110,10 @@ function pythonEditor(id) {
 
     return editor;
 }
-
-
-/*
-This code generates a list of words for the autocomplete.
-*/
-function populateWordList(){
-    var words = {
-        "microbit" : {
-            "Image" : ['ALL_CLOCKS', 'ANGRY', 'ARROW_E', 'ARROW_N', 'ARROW_NE', 'ARROW_NW', 'ARROW_S', 'ARROW_SE', 'ARROW_SW', 'ARROW_W', 'ASLEEP', 'BUTTERFLY', 'CHESSBOARD', 'CLOCK1', 'CLOCK10', 'CLOCK11', 'CLOCK12', 'CLOCK2', 'CLOCK3', 'CLOCK4', 'CLOCK5', 'CLOCK6', 'CLOCK7', 'CLOCK8', 'CLOCK9', 'CONFUSED', 'COW', 'DIAMOND', 'DIAMOND_SMALL', 'DUCK', 'FABULOUS', 'GHOST', 'GIRAFFE', 'HAPPY', 'HEART', 'HEART_SMALL', 'HOUSE', 'MEH', 'MUSIC_CROTCHET', 'MUSIC_QUAVER', 'MUSIC_QUAVERS', 'NO', 'PACMAN', 'PITCHFORK', 'RABBIT', 'ROLLERSKATE', 'SAD', 'SILLY', 'SKULL', 'SMILE', 'SNAKE', 'SQUARE', 'SQUARE_SMALL', 'STICKFIGURE', 'SURPRISED', 'SWORD', 'TARGET', 'TORTOISE', 'TRIANGLE', 'TRIANGLE_LEFT', 'TSHIRT', 'UMBRELLA', 'XMAS', 'YES'],
-            "pin0" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin1" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin2" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin3" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin4" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin5" : ["read_digital", "write_digital"],
-            "pin6" : ["read_digital", "write_digital"],
-            "pin7" : ["read_digital", "write_digital"],
-            "pin8" : ["read_digital", "write_digital"],
-            "pin9" : ["read_digital", "write_digital"],
-            "pin10" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
-            "pin11" : ["read_digital", "write_digital"],
-            "pin12" : ["read_digital", "write_digital"],
-            "pin13" : ["read_digital", "write_digital"],
-            "pin14" : ["read_digital", "write_digital"],
-            "pin15" : ["read_digital", "write_digital"],
-            "pin16" : ["read_digital", "write_digital"],
-            "pin19" : ["read_digital", "write_digital"],
-            "pin20" : ["read_digital", "write_digital"],
-            "accelerometer" : ["current_gesture", "get_gestures", "get_values", "get_x", "get_y", "get_z", "was_gesture"],
-            "button_a" : ["get_presses", "is_pressed", "was_pressed"],
-            "button_b" : ["get_presses", "is_pressed", "was_pressed"],
-            "compass" : ["calibrate", "clear_calibration", "get_field_strength", "get_x", "get_y", "get_z", "heading", "is_calibrated"],
-            "display" : ["clear", "get_pixel", "is_on", "off", "on", "read_light_level", "scroll", "set_pixel", "show"],
-            "i2c" : ["init", "read", "scan", "write"],
-            "panic" : "",
-            "reset" : "",
-            "running_time" : "",
-            "sleep" : "",
-            "spi" : ["init", "read", "write", "write_readinto"],
-            "temperature" : "",
-            "uart" : ["any", "init", "read", "readall", "readline", "write"]
-        },
-        "audio" : ["play", "AudioFrame"],
-        "machine" : ["disable_irq", "enable_irq", "freq", "reset", "time_pulse_us", "unique_id"],
-        "micropython" : ["const", "heap_lock", "heap_unlock", "kbd_intr", "mem_info", "opt_level", "qstr_info", "stack_use"],
-        "music" : ["BADDY", "BA_DING", "BIRTHDAY", "BLUES", "CHASE", "DADADADUM", "ENTERTAINER", "FUNERAL", "FUNK", "JUMP_DOWN", "JUMP_UP", "NYAN", "ODE", "POWER_DOWN", "POWER_UP", "PRELUDE", "PUNCHLINE", "PYTHON", "RINGTONE", "WAWAWAWAA", "WEDDING", "get_tempo", "pitch", "play", "reset", "set_temp", "stop"],
-        "speech" : ["pronounce", "say", "sing", "translate"],
-        "radio" : ["RATE_1MBIT", "RATE_250KBIT", "RATE_2MBIT", "config", "off", "on", "receive", "receive_bytes", "receive_bytes_into", "receive_full", "reset", "send", "send_bytes"],
-        "os" : ["remove", "listdir", "size", "uname"],
-        "time" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
-        "utime" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
-        "ucollections" : ["namedtuple", "OrderedDict"],
-        "collections" : ["namedtuple", "OrderedDict"],
-        "array" : ["array"],
-        "math" : ["e", "pi", "sqrt", "pow", "exp", "log", "cos", "sin", "tan", "acos", "asin", "atan", "atan2", "ceil", "copysign", "fabs", "floor", "fmod", "frexp", "ldexp", "modf", "isfinite", "isinf", "isnan", "trunc", "radians", "degrees"],
-        "random" : ["getrandbits", "seed", "randrange", "randint", "choice", "random", "uniform"],
-        "ustruct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
-        "struct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
-        "sys" : ["version", "version_info", "implementation", "platform", "byteorder", "exit", "print_exception"],
-        "gc" : ["collect", "disable", "enable", "isenabled", "mem_free", "mem_alloc", "threshold"],
-        "neopixel" : {
-            "NeoPixel" : ["clear", "show"]
-        }
-    };
-
-    var wordsHorizontal = [];
-    Object.keys(words).forEach(function(module){
-        wordsHorizontal.push(module);
-        if (Array.isArray(words[module])){
-            words[module].forEach(function(func){
-                wordsHorizontal.push(module + "." + func);
-            });
-        }else{
-            Object.keys(words[module]).forEach(function(sub){
-                wordsHorizontal.push(module + "." + sub);
-                if (Array.isArray(words[module][sub])){
-                    words[module][sub].forEach(function(func){
-                        wordsHorizontal.push(module + "." + sub + "." + func);
-                        wordsHorizontal.push(sub + "." + func);
-                    });
-                }
-            });
-        }
-    });
-    return (wordsHorizontal);
+/* Attach to the global object if running in node */
+if (typeof module !== 'undefined' && module.exports) {
+    global.pythonEditor = pythonEditor;
 }
-
 
 /*
 The following code contains the various functions that connect the behaviour of
@@ -231,9 +130,6 @@ function web_editor(config) {
     // Indicates if there are unsaved changes to the content of the editor.
     var dirty = false;
 
-    // MicroPython filesystem to be initialised on page load.
-    var micropythonFs;
-
     // Sets the description associated with the code displayed in the UI.
     function setDescription(x) {
         $("#script-description").text(x);
@@ -241,12 +137,17 @@ function web_editor(config) {
 
     // Sets the name associated with the code displayed in the UI.
     function setName(x) {
-        $("#script-name").val(x);
+        $("#script-name").text(x);
+    }
+
+    // Gets the description associated with the code displayed in the UI.
+    function getDescription() {
+        return $("#script-description").text();
     }
 
     // Gets the name associated with the code displayed in the UI.
     function getName() {
-        return $("#script-name").val();
+        return $("#script-name").text();
     }
 
     // Get the font size of the text currently displayed in the editor.
@@ -302,25 +203,6 @@ function web_editor(config) {
     function setupFeatureFlags() {
         if(config.flags.blocks) {
             $("#command-blockly").removeClass('hidden');
-            // Add includes 
-            script('blockly/blockly_compressed.js');
-            script('blockly/blocks_compressed.js');
-            script('blockly/python_compressed.js');
-            script('microbit_blocks/blocks/microbit.js');
-            script('microbit_blocks/generators/accelerometer.js');
-            script('microbit_blocks/generators/buttons.js');
-            script('microbit_blocks/generators/compass.js');
-            script('microbit_blocks/generators/display.js');
-            script('microbit_blocks/generators/image.js');
-            script('microbit_blocks/generators/microbit.js');
-            script('microbit_blocks/generators/music.js');
-            script('microbit_blocks/generators/neopixel.js');
-            script('microbit_blocks/generators/pins.js');
-            script('microbit_blocks/generators/radio.js');
-            script('microbit_blocks/generators/speech.js');
-            script('microbit_blocks/generators/python.js');
-            script('blockly/msg/js/en.js');
-            script('microbit_blocks/messages/en/messages.js');
         }
         if(config.flags.snippets) {
             $("#command-snippet").removeClass('hidden');
@@ -336,12 +218,6 @@ function web_editor(config) {
             return encodeURIComponent(f) + "=true";
         }).join("&");
         helpAnchor.attr("href", helpAnchor.attr("href") + "?" + featureQueryString); 
-
-        if(navigator.usb != null){
-            $("#command-flash").removeClass('hidden');
-            $("#command-serial").removeClass('hidden');
-        }
-
     }
 
     // Update the docs link to append MicroPython version
@@ -368,17 +244,21 @@ function web_editor(config) {
             $('#button-decrypt-link').click(function() {
                 var password = $('#passphrase').val();
                 setName(EDITOR.decrypt(password, message.n));
+                setDescription(EDITOR.decrypt(password, message.c));
                 EDITOR.setCode(EDITOR.decrypt(password, message.s));
                 vex.close();
                 EDITOR.focus();
             });
         } else if(migration != null){
             setName(migration.meta.name);
+            setDescription(migration.meta.comment);
             EDITOR.setCode(migration.source);
             EDITOR.focus();
         } else {
             // If there's no name, default to something sensible.
             setName("microbit");
+            // If there's no description, default to something sensible.
+            setDescription("A MicroPython script");
             // A sane default starting point for a new script.
             EDITOR.setCode(config.translate.code.start);
         }
@@ -386,7 +266,6 @@ function web_editor(config) {
         // If configured as experimental update editor background to indicate it
         if(config.flags.experimental) {
             EDITOR.ACE.renderer.scroller.style.backgroundImage = "url('static/img/experimental.png')";
-            $("#known-issues").removeClass('hidden');
         }
         // Configure the zoom related buttons.
         $("#zoom-in").click(function (e) {
@@ -439,236 +318,15 @@ function web_editor(config) {
         $("#command-download").focus();
     }
 
-    // Sets up the file system and adds the initial main.py
-    function setupFilesystem() {
-        micropythonFs = new microbitFs.MicropythonFsHex($('#firmware').text());
-        // Get initial main.py
-        micropythonFs.write('main.py', EDITOR.getCode()); // Add main.py
-    }
-
-    // Based on the Python code magic comment it detects a module
-    function isPyModule(codeStr) {
-        var isModule = false;
-        if (codeStr.length) {
-            var codeLines = codeStr.split(/\r?\n/);
-            // Only look at the first three lines
-            var loopEnd = Math.min(3, codeLines.length);
-            for (var i = 0; i < loopEnd; i++) {
-                if (codeLines[i].indexOf('# microbit-module:') == 0) {
-                    isModule = true;
-                }
-            }
-        }
-        return isModule;
-    }
-
-    // Loads Python code into the editor and/or filesystem
-    function loadPy(filename, codeStr) {
-        var isModule = isPyModule(codeStr);
-        var moduleName = filename.replace('.py', '');
-        filename = isModule ? filename : 'main.py';
-        var showModuleLoadedAlert = true;
-        if (isModule && micropythonFs.exists(filename)) {
-            if (!confirm(config.translate.confirms.replace_module.replace('{{module_name}}', moduleName))) {
-                return;
-            }
-            // A confirmation box to replace the module has already been accepted
-            showModuleLoadedAlert = false;
-        }
-        if (codeStr) {
-            try {
-                micropythonFs.write(filename, codeStr);
-            } catch(e) {
-                alert(config.translate.alerts.load_code + '\n' + e.message);
-            }
-        } else {
-            return alert(config.translate.alerts.empty);
-        }
-        if (isModule) {
-            if (micropythonFs.getStorageRemaining() < 0){
-                micropythonFs.remove(filename);
-                return alert(config.translate.alerts.module_out_of_space);
-            }
-            if (showModuleLoadedAlert) {
-                alert(config.translate.alerts.module_added.replace('{{module_name}}', moduleName));
-            }
-        } else {
-            setName(moduleName);
-            setDescription(config.translate.drop.python);
-            EDITOR.setCode(codeStr);
-            EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
-        }
-    }
-
-    // Reset the filesystem and load the files from this hex file to the fs and editor
-    function loadHex(filename, hexStr) {
-        var errorMsg = '';
-        var code = '';
-        var importedFiles = [];
-        var tryOldMethod = false;
-        try {
-            // If hexStr is parsed correctly it formats the file system before adding the new files
-            importedFiles = micropythonFs.importFilesFromIntelHex(hexStr, {
-                overwrite: true,
-                formatFirst:true
-            });
-            // Check if imported files includes a main.py file
-            if (importedFiles.indexOf('main.py') > -1) {
-                code = micropythonFs.read('main.py');
-            } else {
-                // There is no main.py file, but there could be appended code
-                tryOldMethod = true;
-                errorMsg += config.translate.alerts.no_main + '\n';
-            }
-        } catch(e) {
-           tryOldMethod = true;
-           errorMsg += e.message + '\n';
-        }
-        if (tryOldMethod) {
-            try {
-                code = microbitFs.getIntelHexAppendedScript(hexStr);
-                micropythonFs.write('main.py', code);
-            } catch(e) {
-                // Only display an error if there were no files added to the filesystem
-                if (!importedFiles.length) {
-                    errorMsg += config.translate.alerts.no_script + '\n';
-                    errorMsg += e.message;
-                    return alert(config.translate.alerts.no_python + '\n\n' +
-                            config.translate.alerts.error + errorMsg);
-                }
-            }
-        }
-        setName(filename.replace('.hex', ''));
-        setDescription(config.translate.drop.hex);
-        EDITOR.setCode(code);
-        EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
-    }
-
-    // Function for adding file to filesystem
-    function loadFileToFilesystem(filename, fileBytes) {
-        // Check if file already exists and confirm overwrite
-        if (filename !== 'main.py' && micropythonFs.exists(filename)) {
-            if (!confirm(config.translate.confirms.replace_file.replace('{{file_name}}', filename))) {
-                return;
-            }
-        }
-        // For main.py confirm if the user wants to replace the editor content
-        if (filename === 'main.py' && !confirm(config.translate.confirms.replace_main)) {
-            return;
-        }
-        try {
-            micropythonFs.write(filename, fileBytes);
-            // Check if the filesystem has run out of space
-            var _ = micropythonFs.getIntelHex();
-        } catch(e) {
-            if (micropythonFs.exists(filename)) {
-                micropythonFs.remove(filename);
-            }
-            return alert(config.translate.alerts.cant_add_file + filename + '\n' + e.message);
-        }
-        if (filename == 'main.py') {
-            // TODO: This will probably break in IE10
-            var utf8 = new TextDecoder('utf-8').decode(fileBytes);
-            EDITOR.setCode(utf8);
-        }
-    }
-
-    // Update the widget that shows how much space is used in the filesystem
-    function updateStorageBar() {
-        var modulesSize = 0;
-        var otherSize = 0;
-        var mainSize = 0;
-        var totalSpace = micropythonFs.getStorageSize();
-        try {
-            micropythonFs.write('main.py', EDITOR.getCode());
-            mainSize = micropythonFs.size('main.py');
-        } catch(e) {
-            // No need to do any action with an error, just keep the size 0
-        }
-        micropythonFs.ls().forEach(function(filename) {
-            var extension = filename.split('.').pop();
-            if (extension === 'py') {
-                if (filename !== 'main.py') {
-                    modulesSize += micropythonFs.size(filename);
-                }
-            } else {
-                otherSize += micropythonFs.size(filename);
-            }
-        });
-        var firstTrFound = false;
-        var setTrEl = function(trEl, sizePercentage) {
-            if (sizePercentage > 0) {
-                trEl.css('display','');
-                trEl.css('width', Math.ceil(sizePercentage) + '%');
-                if (!firstTrFound) {
-                    trEl.attr('class', 'fs-space-table-first');
-                    firstTrFound = true;
-                } else {
-                    trEl.attr('class', '');
-                }
-            } else {
-                trEl.css('display', 'none');
-            }
-        };
-        setTrEl($('#fs-space-modules'), modulesSize * 100 / totalSpace);
-        setTrEl($('#fs-space-main'), mainSize * 100 / totalSpace);
-        setTrEl($('#fs-space-other'), otherSize * 100 / totalSpace);
-        // If we are out of free space hide the "free" box
-        if ((modulesSize  + mainSize + otherSize) > (totalSpace * 0.98)) {
-            $('#fs-space-free').css('display', 'none');
-        } else {
-            $('#fs-space-free').css('display', '');
-        }
-    }
-
-    // Regenerate the table showing the file list and call for the storage bar to be updated
-    var updateFileTables = function() {
-        // Delete the current table body content and add rows file by file
-        $('.fs-file-list table tbody').empty();
-        micropythonFs.ls().forEach(function(filename) {
-            var pseudoUniqueId = Math.random().toString(36).substr(2, 9);
-            // Check for main.py to exclude it from the table list
-            if (filename === 'main.py') return;
-            var fileType = (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename) : "";
-            $('.fs-file-list table tbody').append(
-                '<tr><td>' + filename + '</td>' +
-                '<td>' + fileType + '</td>' +
-                '<td>' + (micropythonFs.size(filename)/1024).toFixed(2) + ' Kb</td>' +
-                '<td><button id="' + pseudoUniqueId + '" class="fs-remove-button">Remove</button></td></tr>'
-            );
-            $('#' + pseudoUniqueId).click(function(e) {
-                micropythonFs.remove(filename);
-                updateFileTables();
-            });
-        });
-        // Hide the table if it is empty
-        var fileRowsInTable = $('#fs-file-list>table>tbody').has('tr').length;
-        if (!fileRowsInTable) {
-            $('#fs-file-list>table').css('display', 'none');
-        } else {
-            $('#fs-file-list>table').css('display', '');
-        }
-        updateStorageBar();
-    };
-
     // Generates the text for a hex file with MicroPython and the user code
     function generateFullHexStr() {
+        var firmware = $("#firmware").text();
         var fullHexStr = '';
         try {
-            // Remove main.py if editor content is empty to download a hex file
-            // that includes the filesystem but doesn't try to run any code
-            if (!EDITOR.getCode()) {
-                if (micropythonFs.exists('main.py')) {
-                    micropythonFs.remove('main.py');
-                }
-            } else {
-                micropythonFs.write('main.py', EDITOR.getCode());
-            }
-            // Generate hex file
-            fullHexStr = micropythonFs.getIntelHex();
+            fullHexStr = EDITOR.getHexFile(firmware);
         } catch(e) {
             // We generate a user readable error here to be caught and displayed
-            throw new Error(config.translate.alerts.load_code + '\n' + e.message);
+            throw new Error(config.translate.alerts.length);
         }
         return fullHexStr;
     }
@@ -678,7 +336,7 @@ function web_editor(config) {
         try {
             var output = generateFullHexStr();
         } catch(e) {
-            alert(config.translate.alerts.error + e.message);
+            alert('Error:\n' + e.message);
             return;
         }
         var ua = navigator.userAgent.toLowerCase();
@@ -729,52 +387,45 @@ function web_editor(config) {
                     vex.close();
                     EDITOR.focus();
                 });
-                $('#file-upload-link').click(function() {
-                    $('#file-upload-input').trigger('click');
-                });
-                $('#file-upload-input').on('change', function(e) {
+                $(vexContent).find('#load-form-form').on('submit', function(e){
                     e.preventDefault();
                     e.stopPropagation();
-
-                    var inputFile = this;
-                    if (inputFile.files.length === 1) {
-                        var f = inputFile.files[0];
-                            var ext = (/[.]/.exec(f.name)) ? /[^.]+$/.exec(f.name) : null;
-                            var reader = new FileReader();
-                            if (ext == 'py') {
-                                reader.onload = function(e) {
-                                    loadPy(f.name, e.target.result);
-                                };
-                                reader.readAsText(f);
-                            } else if (ext == 'hex') {
-                                reader.onload = function(e) {
-                                    loadHex(f.name, e.target.result);
-                                };
-                                reader.readAsText(f);
-                            }
+                    if(e.target[0].files.length === 1) {
+                        var f = e.target[0].files[0];
+                        var ext = (/[.]/.exec(f.name)) ? /[^.]+$/.exec(f.name) : null;
+                        var reader = new FileReader();
+                        if (ext == 'py') {
+                            setName(f.name.replace('.py', ''));
+                            setDescription(config.translate.drop.python);
+                            reader.onload = function(e) {
+                                EDITOR.setCode(e.target.result);
+                            };
+                            reader.readAsText(f);
+                            EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
+                        } else if (ext == 'hex') {
+                            setName(f.name.replace('.hex', ''));
+                            setDescription(config.translate.drop.hex);
+                            reader.onload = function(e) {
+                                var code = '';
+                                var showAlert = false;
+                                try {
+                                    code = upyhex.extractPyStrFromIntelHex(e.target.result);
+                                } catch(e) {
+                                    showAlert = true;
+                                }
+                                if (showAlert || code.length === 0) {
+                                    return alert(config.translate.alerts.unrecognised_hex);
+                                } else {
+                                    EDITOR.setCode(code);
+                                }
+                            };
+                            reader.readAsText(f);
+                            EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
+                        }
                     }
-                    inputFile.value = '';
                     vex.close();
                     EDITOR.focus();
                     return false;
-                });
-                $('#fs-file-upload-button').click(function() {
-                    $('#fs-file-upload-input').trigger('click');
-                });
-                $('#fs-file-upload-input').on('change', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    var inputFile = this;
-                    Array.from(inputFile.files).forEach(function(file) {
-                        var fileReader = new FileReader();
-                        fileReader.onload = function(e) {
-                            loadFileToFilesystem(file.name, new Uint8Array(e.target.result));
-                            updateFileTables();
-                        };
-                        fileReader.readAsArrayBuffer(file);
-                    });
-                    inputFile.value = '';
                 });
             }
         });
@@ -782,7 +433,6 @@ function web_editor(config) {
             $('.load-drag-target').toggle();
             $('.load-form').toggle();
         });
-        updateFileTables();
     }
 
     // Triggered when a user clicks the blockly button. Toggles blocks on/off.
@@ -848,6 +498,7 @@ function web_editor(config) {
     function doSnippets() {
         // Snippets are triggered by typing a keyword followed by pressing TAB.
         // For example, type "wh" followed by TAB.
+        var snippetManager = ace.require("ace/snippets").snippetManager;
         var template = $('#snippet-template').html();
         Mustache.parse(template);
         var context = {
@@ -856,7 +507,7 @@ function web_editor(config) {
             'instructions': config.translate.code_snippets.instructions,
             'trigger_heading': config.translate.code_snippets.trigger_heading,
             'description_heading': config.translate.code_snippets.description_heading,
-            'snippets': EDITOR.getSnippets(),
+            'snippets': snippetManager.snippetMap.python,
             'describe': function() {
                 return function(text, render) {
                     var name = render(text);
@@ -893,6 +544,7 @@ function web_editor(config) {
             // Name
             qs_array.push('n=' + EDITOR.encrypt(password, getName()));
             // Comment
+            qs_array.push('c=' + EDITOR.encrypt(password, getDescription()));
             // Source
             qs_array.push('s=' + EDITOR.encrypt(password, EDITOR.getCode()));
             // Hint
@@ -927,211 +579,36 @@ function web_editor(config) {
         var ext = (/[.]/.exec(file.name)) ? /[^.]+$/.exec(file.name) : null;
         var reader = new FileReader();
         if (ext == 'py') {
+            setName(file.name.replace('.py', ''));
+            setDescription(config.translate.drop.python);
             reader.onload = function(e) {
-                loadPy(file.name, e.target.result);
+                EDITOR.setCode(e.target.result);
             };
             reader.readAsText(file);
+            EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
         } else if (ext == 'hex') {
+            setName(file.name.replace('.hex', ''));
+            setDescription(config.translate.drop.hex);
             reader.onload = function(e) {
-                loadHex(file.name, e.target.result);
+                var code = '';
+                var showAlert = false;
+                try {
+                    code = upyhex.extractPyStrFromIntelHex(e.target.result);
+                } catch(e) {
+                    showAlert = true;
+                }
+                if (showAlert || code.length === 0) {
+                    return alert(config.translate.alerts.unrecognised_hex);
+                } else {
+                    EDITOR.setCode(code);
+                }
             };
             reader.readAsText(file);
+            EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
         }
         $('#editor').focus();
     }
 
-    function doFlash(e) {
-
-        // Hide serial and disconnect if open
-        if($("#repl").css('display') != 'none'){
-            $("#repl").hide();
-            $("#request-repl").hide();
-            $("#editor-container").show();
-            window.daplink.stopSerialRead();
-            $("#command-serial").attr("title", "Connect to your micro:bit via serial");
-            $("#command-serial > .roundlabel").text("Open Serial");
-        } 
-
-        console.log("Select your micro:bit");
-        navigator.usb.requestDevice({
-            filters: [{vendorId: 0x0d28, productId: 0x0204}]
-        }).then(function(device) {
-
-            // Connect to device
-            window.transport = new DAPjs.WebUSB(device);
-            window.daplink = new DAPjs.DAPLink(window.transport);
-            
-            // Ensure disconnected
-            window.daplink.disconnect();
-
-            // Event to monitor flashing progress
-            window.daplink.on(DAPjs.DAPLink.EVENT_PROGRESS, function(progress) {
-                $("#webusb-flashing-progress").val(progress).css("display", "inline-block");
-            });
-            
-            // Push binary to board
-            return window.daplink.connect()
-            .then( function() {
-            
-                try {
-                 var output = generateFullHexStr();
-                } catch(e) {
-                 alert(e.message);
-                 return;
-                }
-                
-                // Encode firmware for flashing
-                var enc = new TextEncoder();
-                var image = enc.encode(output).buffer;
-                
-                console.log("Flashing");
-                $("#webusb-flashing-progress").val(0);
-                $('#flashing-overlay-error').html("");
-                $("#flashing-overlay-container").css("display", "flex");
-                return window.daplink.flash(image);
-            })
-            .then( function() {
-                console.log("Finished flashing!");
-                $("#flashing-overlay-container").hide();
-                return window.daplink.disconnect();
-            })
-            .catch(function(e){
-                console.log("Error flashing: " + e);
-                $("#flashing-overlay-container").css("display", "flex");
-                $("#webusb-flashing-progress").css("display", "none");
-                
-                // If micro:bit does not support dapjs
-                if(e.message === "No valid interfaces found."){
-                    $("#flashing-overlay-error").html('<div>' + e + '</div><div>You need to <a target="_blank" href="https://microbit.org/guide/firmware/">update your micro:bit firmware</a> to make use of this feature!</div><a href="#" onclick="flashErrorClose()">Close</a>');
-                    return;
-                } else if(e.message === "Unable to claim interface.") {
-                    $("#flashing-overlay-error").html('<div>Another process is connected to this device.</div><div>Close any other tabs that may be using WebUSB (e.g. MakeCode, Python Editor), or unplug and replug the micro:bit before trying again.</div><a href="#" onclick="flashErrorClose()">Close</a>');
-                    return;
-                }
-
-                $("#flashing-overlay-error").html('<div>' + e + '</div><div>Please restart your micro:bit and try again</div><a href="#" onclick="flashErrorClose()">Close</a>');
-            }); 
-
-    }).catch(function(e) {
-        console.log("There was an error during flashing: " + e);
-    });
-    
-    }
-
-    function doSerial(){
-      
-        // Hide terminal
-        if($("#repl").css('display') != 'none'){
-            $("#repl").hide();
-            $("#request-repl").hide();
-            $("#editor-container").show();
-            window.daplink.stopSerialRead();
-            $("#command-serial").attr("title", "Connect to your micro:bit via serial");
-            $("#command-serial > .roundlabel").text("Open Serial");
-            return;
-        } 
-
-        navigator.usb.requestDevice({
-            filters: [{vendorId: 0xD28}]
-        })
-        .then(function(device) {
-
-            // Change Serial button to close
-            $("#command-serial").attr("title", "Close the serial connection and go back to the editor");
-            $("#command-serial > .roundlabel").text("Close Serial");
-
-            // Empty #repl to remove any previous terminal interfaces
-            $("#repl").empty();
-
-            // Connect to device
-            window.transport = new DAPjs.WebUSB(device);
-            window.daplink = new DAPjs.DAPLink(window.transport);
-           
-
-            window.daplink.connect()
-            .then( function() {
-                return window.daplink.setSerialBaudrate(115200);
-            })
-            .then( function() {
-                return window.daplink.getSerialBaudrate();
-            })
-            .then(function(baud) {
-                window.daplink.startSerialRead(50);
-                console.log('Listening at ${baud} baud...');
-                
-               lib.init(setupHterm);
-               
-            })
-            .catch(function(e) {
-                 // If micro:bit does not support dapjs
-                $("#flashing-overlay-error").show();
-                if(e.message === "No valid interfaces found."){
-                    $("#flashing-overlay-error").html('<div>' + e + '</div><div><a target="_blank" href="https://support.microbit.org/support/solutions/articles/19000019131-how-to-upgrade-the-firmware-on-the-micro-bit">Update your micro:bit firmware</a> to make use of this feature!</div><a href="#" onclick="flashErrorClose()">Close</a>');
-                    return;
-                } else if(e.message === "Unable to claim interface.") {
-                    $("#flashing-overlay-error").html('<div>' + e + '</div><div>Another process is connected to this device.</div><a href="#" onclick="flashErrorClose()">Close</a>');
-                    return;
-                }
-
-
-                $("#flashing-overlay-error").html('<div>' + e + '</div><div>Please restart your micro:bit and try again</div><a href="#" onclick="flashErrorClose()">Close</a>');
-            });
-        });
-    }
-
-    function setupHterm(){
-               hterm.defaultStorage = new lib.Storage.Local();
-               var t = new hterm.Terminal("opt_profileName");
-               t.options_.cursorVisible = true;
-
-               var daplinkReceived = false;
-
-               t.onTerminalReady = function() {
-                   var io = t.io.push();
-
-                   io.onVTKeystroke = function(str) {
-                        window.daplink.serialWrite(str);
-                   };
-
-                   io.sendString = function(str) {
-                        window.daplink.serialWrite(str);
-                   };
-
-                   io.onTerminalResize = function(columns, rows) {
-                   };
-               
-
-               };
-
-               $("#editor-container").hide();
-               $("#repl").show();
-               $("#request-repl").show();
-
-               t.decorate(document.querySelector('#repl'));
-               t.installKeyboard();
-
-               // Recalculate terminal height
-               $("#repl > iframe").css("position", "relative");
-               $("#repl").attr("class", "hbox flex1");
-
-               window.daplink.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, function(data) {
-                       t.io.print(data); // first byte of data is length
-                       daplinkReceived = true;
-               });
-
-               /* Don't do this automatically
-               // Send ctrl-C to get the terminal up
-               var attempt = 0;
-               var getPrompt = setInterval(
-                       function(){
-                            daplink.serialWrite("\x03"); 
-                            console.log("Requesting REPL...");
-                            attempt++;
-                            if(attempt == 5 || daplinkReceived) clearInterval(getPrompt);
-                        }, 200);
-               */
-    }
-    
     // Join up the buttons in the user interface with some functions for
     // handling what to do when they're clicked.
     function setupButtons() {
@@ -1153,37 +630,14 @@ function web_editor(config) {
         $("#command-share").click(function () {
             doShare();
         });
-        $("#command-flash").click(function () {
-            doFlash();
-        });
-        $("#command-serial").click(function () {
-            doSerial();
-        });
-        $("#request-repl").click(function () {
-            daplink.serialWrite("\x03"); 
-        });
-        $("#command-help").click(function (e) {
-            // Show help
-            $(".helpsupport_container").css("top", $("#command-help").offset().top + $("#toolbox").height() + 10);
-            $(".helpsupport_container").css("left", $("#command-help").offset().left);
-
-            // Toggle visibility
+        $("#command-help").click(function () {
             if($(".helpsupport_container").css("display") == "none"){
                 $(".helpsupport_container").css("display", "flex");
-                $(".helpsupport_container").css("display", "-ms-flexbox"); // IE10 support
             } else {
                 $(".helpsupport_container").css("display", "none");
             }
-
-            // Stop immediate closure
-            e.stopImmediatePropagation();
         });
-        // Add document click listener
-        document.body.addEventListener('click',function(event) {
-            // Close helpsupport if the click isn't on a descendent of #command-help
-            if($(event.target).closest('.helpsupport_container').length == 0 || $(event.target).prop("tagName").toLowerCase() === 'a')
-                $(".helpsupport_container").css("display", "none");
-        });
+        $(".helpsupport_container").hide();
     }
 
     // Extracts the query string and turns it into an object of key/value
@@ -1217,17 +671,4 @@ function web_editor(config) {
     setupFeatureFlags();
     setupEditor(qs, migration);
     setupButtons();
-    window.onload = function() {
-        // Firmware at the end of the HTML file has to be loaded first
-        setupFilesystem();
-    };
 }
-
-/*
- * Function to close flash error box
- */
-function flashErrorClose(){
-    $('#flashing-overlay-error').html("");
-    $('#flashing-overlay-container').hide();
-}
-
