@@ -5,8 +5,63 @@ $('body').append('<div id="fooeditor"></div>');
 var faux_editor = pythonEditor('fooeditor');
 
 
+const targetUrl = "http://localhost:5000/editor.html";
+const downloadsDir = "/";
+const device = usbutils.fetchDevice(0xD28).Result;
+
+jest.setTimeout(250000);
+
 // Test suite for the pythonEditor object.
 describe("An editor for MicroPython on the BBC micro:bit:", function() {
+
+    describe("Puppeteer tests work correctly:", function() {
+
+        it("File system works correctly when loading files", async function() {
+            expect.assertions(1);
+            expect(await ImportTest.Run(targetUrl, downloadsDir, device)).toEqual({"dialog-test": false, "flash-test": null});
+        });
+
+        it("File system allows for the correct number of small files", async function() {
+            expect.assertions(1);
+            expect(await ChunksTest.Run(targetUrl, downloadsDir, device)).toEqual({"files-test": true, "flash-test": null});
+        });
+
+        it("File system works correctly when replacing main.py", async function() {
+            expect.assertions(1);
+            expect(await LoadTest.Run(targetUrl, downloadsDir, device)).toEqual({"dialog-test": true, "cancel-test": true, "accept-test": true, "files-test": true});
+        });
+
+        it("File system works correctly when adding a single, large file", async function() {
+            expect.assertions(1);
+            expect(await LargeTest.Run(targetUrl, downloadsDir, device)).toEqual({"loads-test": true, "flash-test": null});
+        });
+
+        it("File system rejects files that are too large", async function() {
+            expect.assertions(1);
+            expect(await ToolargeTest.Run(targetUrl, downloadsDir, device)).toEqual({"loads-test": true});
+        });
+
+        it("File system appropriately handles invalid files", async function() {
+            expect.assertions(1);
+            expect(await InvalidTest.Run(targetUrl, downloadsDir, device)).toEqual({"empty-py-test": true, "invalid-test": true});
+        });
+
+        it("File system can load old hex files (v1.0.1)", async function() {
+            expect.assertions(1);
+            expect(await OldTestA.Run(targetUrl, downloadsDir, device)).toEqual({"load-test": true, "flash-test": null});
+        });
+
+        it("File system can load old hex files (v0.9)", async function() {
+            expect.assertions(1);
+            expect(await OldTestB.Run(targetUrl, downloadsDir, device)).toEqual({"load-test": true, "flash-test": null});
+        });
+
+        it("File system correctly handles 'magic comment' with modules", async function() {
+            expect.assertions(1);
+            expect(await ModuleTest.Run(targetUrl, downloadsDir, device)).toEqual({"firstline-test": true, "secondline-test": true, "thirdline-test": true, "filename-test": true, "fourthline-test": true, "flash-test": null});
+        });
+    
+    });
 
     describe("The editor initialises as expected.", function() {
 
