@@ -9,7 +9,7 @@ const targetUrl = "http://localhost:5000/editor.html";
 const downloadsDir = "/";
 const device = usbutils.fetchDevice(0xD28).Result;
 
-jest.setTimeout(250000);
+jest.setTimeout(15 * 60 * 1000); // 15 minutes timeout
 
 // Test suite for the pythonEditor object.
 describe("An editor for MicroPython on the BBC micro:bit:", function() {
@@ -21,10 +21,10 @@ describe("An editor for MicroPython on the BBC micro:bit:", function() {
             expect(await ImportTest.Run(targetUrl, downloadsDir, device)).toEqual({"dialog-test": false, "flash-test": null});
         });
 
-        it("File system allows for the correct number of small files", async function() {
+        /*it("File system allows for the correct number of small files", async function() {
             expect.assertions(1);
             expect(await ChunksTest.Run(targetUrl, downloadsDir, device)).toEqual({"files-test": true, "flash-test": null});
-        });
+        });*/
 
         it("File system works correctly when replacing main.py", async function() {
             expect.assertions(1);
