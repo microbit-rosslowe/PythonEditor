@@ -69,8 +69,15 @@ Nicholas and Damien.
     </head>
     <body>
         <script type="application/javascript">
+            if (navigator.appVersion.indexOf("MSIE 9") !== -1 || navigator.appVersion.indexOf("MSIE 8") !== -1 || navigator.appVersion.indexOf("MSIE 7") !== -1)
+            {
+                document.write('<a href="https://www.microsoft.com/en-gb/download/internet-explorer.aspx">Please upgrade to IE 10 or greater.</a>');
+                document.execCommand('Stop');
+            }
+        </script>
+        <script type="application/javascript">
             // VERSION INFORMATION
-            EDITOR_VERSION = "1.1.2";
+            EDITOR_VERSION = "1.1.3";
             UPY_VERSION = "1.0.1";
         </script>
         <script id="load-template" type="x-tmpl-mustache">
@@ -80,13 +87,12 @@ Nicholas and Damien.
             </div>
             <div class="load-form">
                 <form id="load-form-form">
-                    <input type="file" name="load-form-file-upload"/><br/>
-                    <input type="submit" value="{{ submit }}"/>
+                  <input type="file" style="display: none" name="load-form-file-upload" id="file-upload-input">
                 </form>
             </div>
             <div id="load-alt">
                 <p><a href="#" class="load-form load-toggle">{{ toggle-drop }}</a></p>
-                <p><a href="#" class="load-drag-target load-toggle">{{ toggle-file }}</a></p>
+                <p><a href="#" id="file-upload-link" class="load-drag-target load-toggle">{{ toggle-file }}</a></p>
             </div>
 
             <h2><i class="fa fa-folder"></i> <strong>{{ fs-title }}</strong></h2>
@@ -102,24 +108,21 @@ Nicholas and Damien.
             </table>
             <div class="fs-file-list" id="fs-file-list">
                 <table>
-                  <thead>
-                      <tr>
-                          <td>Filename</td>
-                          <td>Type</td>
-                          <td>Size</td>
-                          <td></td>
-                      </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-              </table>
+                    <thead>
+                        <tr>
+                            <td>Filename</td>
+                            <td>Type</td>
+                            <td>Size</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
-            <div class="fs-form-wrapper">
-              <form id="fs-form">
-                  <input type="button" id="fs-form-file-upload-button" value="{{ fs-add-file }}">
-                  <input type="file" style="display: none" name="fs-form-file-upload" id="fs-form-file-upload" multiple>
-                  <input type="submit" style="display: none" id="fs-form-submit-button" value="{{ submit }}"/>
-              </form>
+            <div>
+                <input type="button" id="fs-file-upload-button" value="{{ fs-add-file }}">
+                <input type="file" style="display: none" name="fs-file-upload-input" id="fs-file-upload-input" multiple>
             </div>
         </script>
         <script id="snippet-template" type="x-tmpl-mustache">
@@ -161,13 +164,7 @@ Nicholas and Damien.
             <p>{{ hint }}</p>
             <p><button id="button-decrypt-link">{{ button }}</button></p>
         </script>
-        <script id="messagebar-template" type="x-tmpl-mustache">
-            <i class="fa fa-warning"></i> <strong>{{ title }}</strong>
-            <a href="#" id="messagebar-link">{{ link }}</a> {{ instructions }}
-            <a href="#" id="messagebar-close">{{ close }}</a>
-        </script>
         <div id="main" class="vbox">
-          <div id="messagebar" class="hbox"></div>
           <div id="toolbox" class="hbox">
             <div id="commands" class="hbox">
                 <a href="#" class="roundbutton" id="command-download"
@@ -250,6 +247,7 @@ Nicholas and Damien.
                         <div class="helpsupport"><a id="docs-link" title="View the documentation for MicroPython" href="https://microbit-micropython.readthedocs.io/" target="_blank">Documentation</a></div>
                         <div class="helpsupport"><a id="help-link" title="Open help for this editor in a new tab" href="help.html" target="_blank" >Help</a></div>
                         <div class="helpsupport"><a title="Get support for your micro:bit in a new tab" href="https://support.microbit.org/support/home" target="_blank">Support</a></div>
+                        <div class="helpsupport hidden" id="known-issues"><a title="View open issues for the Python Editor in GitHub" href="https://github.com/bbcmicrobit/PythonEditor/issues" target="_blank">Issue Tracker</a></div>
                     </div>
                     <div class="helpsupport_rhs">
                         <div class="helpsupport">Editor Version: <script>document.write(EDITOR_VERSION);</script></div>
@@ -327,12 +325,13 @@ Nicholas and Damien.
             type="application/javascript"></script>
         <script>
         // Load DAPjs and hterm if WebUSB exists
-        if(typeof navigator.usb != undefined)
+        if(navigator.usb)
         {
             script('static/js/dap.bundle.js');
             script('static/js/hterm_all.js');
         }
         </script>
+        <script src="static/js/polyfill.min.js" type="application/javascript"></script>
         <script src="static/js/ResizeSensor.js"></script>
         <script src="static/js/ElementQueries.js"></script>
         <script src="lzma/lzma_worker.js"></script>
@@ -388,12 +387,15 @@ web_editor({
         'no_script': 'Hex file does not contain a Python script.',
         'no_main': 'The hex file does not contain a main.py file.',
         'cant_add_file': 'Could not add file to the system:',
-        'module_added': 'A module has been added to the filesystem.'
+        'module_added': 'The "{{module_name}}" module has been added to the filesystem.',
+        'module_out_of_space': 'Could not add file to the system as there is no storage space left.'
       },
       'confirms': {
         'quit': "Some of your changes have not been saved. Quit anyway?",
         'blocks': "You have unsaved code. Using blocks will change your code. You may lose your changes. Do you want to continue?",
-        'main_replace': 'Adding a main.py file will replace the code in the editor!',
+        'replace_main': 'Adding a main.py file will replace the code in the editor!',
+        'replace_file': 'Do you want to replace the "{{file_name}}" file?',
+        'replace_module': 'Do you want to replace the "{{module_name}}" module?'
       },
       'code': {
         'start': "# Add your Python code here. E.g.\n" +
@@ -406,12 +408,6 @@ web_editor({
       'drop': {
         'python': 'Extracted from a Python file',
         'hex': 'Extracted from a hex file'
-      },
-      'messagebar': {
-        'title': 'This editor is out of date!',
-        'link': 'Click here',
-        'instructions': 'to open the latest version.',
-        'close': 'Hide'
       },
       'load': {
         'load-title': 'Load Script or HEX file',

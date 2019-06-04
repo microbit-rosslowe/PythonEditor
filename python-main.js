@@ -18,12 +18,35 @@ function pythonEditor(id) {
     editor.fontSizeStep = 4;
 
     // Represents the ACE based editor.
+    var langTools = ace.require("ace/ext/language_tools");
     var ACE = ace.edit(id);  // The editor is in the tag with the referenced id.
     ACE.setOptions({
-        enableSnippets: true  // Enable code snippets.
+        enableSnippets: true,  // Enable code snippets.
+        enableBasicAutocompletion: true, // Enable (automatic) autocompletion
+        enableLiveAutocompletion: true
     });
-    ACE.setTheme("ace/theme/kr_theme");  // Make it look nice.
-    ACE.getSession().setMode("ace/mode/python");  // We're editing Python.
+    ACE.$blockScrolling = Infinity; // Silences the 'blockScrolling' warning
+
+    var horizontalWordList = populateWordList();
+
+    var staticWordCompleter = {
+        identifierRegexps: [/[a-zA-Z_0-9\.\-\u00A2-\uFFFF]/],
+        getCompletions: function(editor, session, pos, prefix, callback) {
+            var wordList = horizontalWordList;
+            
+            callback(null, wordList.map(function(word) {
+                return {
+                    caption: word,
+                    value: word,
+                    meta: "static"
+                };
+            }));
+        }
+    }
+    langTools.addCompleter(staticWordCompleter);
+    
+    ACE.setTheme("ace/theme/kr_theme_legacy");  // Make it look nice.
+    ACE.getSession().setMode("ace/mode/python_microbit");  // We're editing Python.
     ACE.getSession().setTabSize(4); // Tab=4 spaces.
     ACE.getSession().setUseSoftTabs(true); // Tabs are really spaces.
     ACE.setFontSize(editor.initialFontSize);
@@ -52,13 +75,13 @@ function pythonEditor(id) {
     // Return details of all the snippets this editor knows about.
     editor.getSnippets = function() {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        return snippetManager.snippetMap.python;
+        return snippetManager.snippetMap.python_microbit;
     };
 
     // Triggers a snippet by name in the editor.
     editor.triggerSnippet = function(snippet) {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        snippet = snippetManager.snippetNameMap.python[snippet];
+        snippet = snippetManager.snippetNameMap.python_microbit[snippet];
         if (snippet) {
             snippetManager.insertSnippet(ACE, snippet.content);
         }
@@ -106,6 +129,93 @@ function pythonEditor(id) {
     return editor;
 }
 
+
+/*
+This code generates a list of words for the autocomplete.
+*/
+function populateWordList(){
+    var words = {
+        "microbit" : {
+            "Image" : ['ALL_CLOCKS', 'ANGRY', 'ARROW_E', 'ARROW_N', 'ARROW_NE', 'ARROW_NW', 'ARROW_S', 'ARROW_SE', 'ARROW_SW', 'ARROW_W', 'ASLEEP', 'BUTTERFLY', 'CHESSBOARD', 'CLOCK1', 'CLOCK10', 'CLOCK11', 'CLOCK12', 'CLOCK2', 'CLOCK3', 'CLOCK4', 'CLOCK5', 'CLOCK6', 'CLOCK7', 'CLOCK8', 'CLOCK9', 'CONFUSED', 'COW', 'DIAMOND', 'DIAMOND_SMALL', 'DUCK', 'FABULOUS', 'GHOST', 'GIRAFFE', 'HAPPY', 'HEART', 'HEART_SMALL', 'HOUSE', 'MEH', 'MUSIC_CROTCHET', 'MUSIC_QUAVER', 'MUSIC_QUAVERS', 'NO', 'PACMAN', 'PITCHFORK', 'RABBIT', 'ROLLERSKATE', 'SAD', 'SILLY', 'SKULL', 'SMILE', 'SNAKE', 'SQUARE', 'SQUARE_SMALL', 'STICKFIGURE', 'SURPRISED', 'SWORD', 'TARGET', 'TORTOISE', 'TRIANGLE', 'TRIANGLE_LEFT', 'TSHIRT', 'UMBRELLA', 'XMAS', 'YES'],
+            "pin0" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin1" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin2" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin3" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin4" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin5" : ["read_digital", "write_digital"],
+            "pin6" : ["read_digital", "write_digital"],
+            "pin7" : ["read_digital", "write_digital"],
+            "pin8" : ["read_digital", "write_digital"],
+            "pin9" : ["read_digital", "write_digital"],
+            "pin10" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin11" : ["read_digital", "write_digital"],
+            "pin12" : ["read_digital", "write_digital"],
+            "pin13" : ["read_digital", "write_digital"],
+            "pin14" : ["read_digital", "write_digital"],
+            "pin15" : ["read_digital", "write_digital"],
+            "pin16" : ["read_digital", "write_digital"],
+            "pin19" : ["read_digital", "write_digital"],
+            "pin20" : ["read_digital", "write_digital"],
+            "accelerometer" : ["current_gesture", "get_gestures", "get_values", "get_x", "get_y", "get_z", "was_gesture"],
+            "button_a" : ["get_presses", "is_pressed", "was_pressed"],
+            "button_b" : ["get_presses", "is_pressed", "was_pressed"],
+            "compass" : ["calibrate", "clear_calibration", "get_field_strength", "get_x", "get_y", "get_z", "heading", "is_calibrated"],
+            "display" : ["clear", "get_pixel", "is_on", "off", "on", "read_light_level", "scroll", "set_pixel", "show"],
+            "i2c" : ["init", "read", "scan", "write"],
+            "panic" : "",
+            "reset" : "",
+            "running_time" : "",
+            "sleep" : "",
+            "spi" : ["init", "read", "write", "write_readinto"],
+            "temperature" : "",
+            "uart" : ["any", "init", "read", "readall", "readline", "write"]
+        },
+        "audio" : ["play", "AudioFrame"],
+        "machine" : ["disable_irq", "enable_irq", "freq", "reset", "time_pulse_us", "unique_id"],
+        "micropython" : ["const", "heap_lock", "heap_unlock", "kbd_intr", "mem_info", "opt_level", "qstr_info", "stack_use"],
+        "music" : ["BADDY", "BA_DING", "BIRTHDAY", "BLUES", "CHASE", "DADADADUM", "ENTERTAINER", "FUNERAL", "FUNK", "JUMP_DOWN", "JUMP_UP", "NYAN", "ODE", "POWER_DOWN", "POWER_UP", "PRELUDE", "PUNCHLINE", "PYTHON", "RINGTONE", "WAWAWAWAA", "WEDDING", "get_tempo", "pitch", "play", "reset", "set_temp", "stop"],
+        "speech" : ["pronounce", "say", "sing", "translate"],
+        "radio" : ["RATE_1MBIT", "RATE_250KBIT", "RATE_2MBIT", "config", "off", "on", "receive", "receive_bytes", "receive_bytes_into", "receive_full", "reset", "send", "send_bytes"],
+        "os" : ["remove", "listdir", "size", "uname"],
+        "time" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
+        "utime" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
+        "ucollections" : ["namedtuple", "OrderedDict"],
+        "collections" : ["namedtuple", "OrderedDict"],
+        "array" : ["array"],
+        "math" : ["e", "pi", "sqrt", "pow", "exp", "log", "cos", "sin", "tan", "acos", "asin", "atan", "atan2", "ceil", "copysign", "fabs", "floor", "fmod", "frexp", "ldexp", "modf", "isfinite", "isinf", "isnan", "trunc", "radians", "degrees"],
+        "random" : ["getrandbits", "seed", "randrange", "randint", "choice", "random", "uniform"],
+        "ustruct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
+        "struct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
+        "sys" : ["version", "version_info", "implementation", "platform", "byteorder", "exit", "print_exception"],
+        "gc" : ["collect", "disable", "enable", "isenabled", "mem_free", "mem_alloc", "threshold"],
+        "neopixel" : {
+            "NeoPixel" : ["clear", "show"]
+        }
+    };
+
+    var wordsHorizontal = [];
+    Object.keys(words).forEach(function(module){
+        wordsHorizontal.push(module);
+        if (Array.isArray(words[module])){
+            words[module].forEach(function(func){
+                wordsHorizontal.push(module + "." + func);
+            });
+        }else{
+            Object.keys(words[module]).forEach(function(sub){
+                wordsHorizontal.push(module + "." + sub);
+                if (Array.isArray(words[module][sub])){
+                    words[module][sub].forEach(function(func){
+                        wordsHorizontal.push(module + "." + sub + "." + func);
+                        wordsHorizontal.push(sub + "." + func);
+                    });
+                }
+            });
+        }
+    });
+    return (wordsHorizontal);
+}
+
+
 /*
 The following code contains the various functions that connect the behaviour of
 the editor to the DOM (web-page).
@@ -115,8 +225,8 @@ See the comments in-line for more information.
 function web_editor(config) {
     'use strict';
 
-    // Instance of the pythonEditor object (the ACE text editor wrapper)
-    var EDITOR = pythonEditor('editor');
+    // Global (useful for testing) instance of the ACE wrapper object
+    window.EDITOR = pythonEditor('editor');
 
     // Indicates if there are unsaved changes to the content of the editor.
     var dirty = false;
@@ -276,6 +386,7 @@ function web_editor(config) {
         // If configured as experimental update editor background to indicate it
         if(config.flags.experimental) {
             EDITOR.ACE.renderer.scroller.style.backgroundImage = "url('static/img/experimental.png')";
+            $("#known-issues").removeClass('hidden');
         }
         // Configure the zoom related buttons.
         $("#zoom-in").click(function (e) {
@@ -341,7 +452,8 @@ function web_editor(config) {
         if (codeStr.length) {
             var codeLines = codeStr.split(/\r?\n/);
             // Only look at the first three lines
-            for (var i = 0; i < 3; i++) {
+            var loopEnd = Math.min(3, codeLines.length);
+            for (var i = 0; i < loopEnd; i++) {
                 if (codeLines[i].indexOf('# microbit-module:') == 0) {
                     isModule = true;
                 }
@@ -350,10 +462,19 @@ function web_editor(config) {
         return isModule;
     }
 
-    // Loads Python code into the editor and filesystem main.py, keeps the rest of files
+    // Loads Python code into the editor and/or filesystem
     function loadPy(filename, codeStr) {
         var isModule = isPyModule(codeStr);
+        var moduleName = filename.replace('.py', '');
         filename = isModule ? filename : 'main.py';
+        var showModuleLoadedAlert = true;
+        if (isModule && micropythonFs.exists(filename)) {
+            if (!confirm(config.translate.confirms.replace_module.replace('{{module_name}}', moduleName))) {
+                return;
+            }
+            // A confirmation box to replace the module has already been accepted
+            showModuleLoadedAlert = false;
+        }
         if (codeStr) {
             try {
                 micropythonFs.write(filename, codeStr);
@@ -364,9 +485,15 @@ function web_editor(config) {
             return alert(config.translate.alerts.empty);
         }
         if (isModule) {
-            alert(config.translate.alerts.module_added);
+            if (micropythonFs.getStorageRemaining() < 0){
+                micropythonFs.remove(filename);
+                return alert(config.translate.alerts.module_out_of_space);
+            }
+            if (showModuleLoadedAlert) {
+                alert(config.translate.alerts.module_added.replace('{{module_name}}', moduleName));
+            }
         } else {
-            setName(filename.replace('.py', ''));
+            setName(moduleName);
             setDescription(config.translate.drop.python);
             EDITOR.setCode(codeStr);
             EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
@@ -381,7 +508,10 @@ function web_editor(config) {
         var tryOldMethod = false;
         try {
             // If hexStr is parsed correctly it formats the file system before adding the new files
-            importedFiles = micropythonFs.importFilesFromIntelHex(hexStr, true, true);
+            importedFiles = micropythonFs.importFilesFromIntelHex(hexStr, {
+                overwrite: true,
+                formatFirst:true
+            });
             // Check if imported files includes a main.py file
             if (importedFiles.indexOf('main.py') > -1) {
                 code = micropythonFs.read('main.py');
@@ -403,9 +533,8 @@ function web_editor(config) {
                 if (!importedFiles.length) {
                     errorMsg += config.translate.alerts.no_script + '\n';
                     errorMsg += e.message;
-                    alert(config.translate.alerts.no_python + '\n\n' +
+                    return alert(config.translate.alerts.no_python + '\n\n' +
                             config.translate.alerts.error + errorMsg);
-                    return;
                 }
             }
         }
@@ -415,12 +544,41 @@ function web_editor(config) {
         EDITOR.ACE.gotoLine(EDITOR.ACE.session.getLength());
     }
 
+    // Function for adding file to filesystem
+    function loadFileToFilesystem(filename, fileBytes) {
+        // Check if file already exists and confirm overwrite
+        if (filename !== 'main.py' && micropythonFs.exists(filename)) {
+            if (!confirm(config.translate.confirms.replace_file.replace('{{file_name}}', filename))) {
+                return;
+            }
+        }
+        // For main.py confirm if the user wants to replace the editor content
+        if (filename === 'main.py' && !confirm(config.translate.confirms.replace_main)) {
+            return;
+        }
+        try {
+            micropythonFs.write(filename, fileBytes);
+            // Check if the filesystem has run out of space
+            var _ = micropythonFs.getIntelHex();
+        } catch(e) {
+            if (micropythonFs.exists(filename)) {
+                micropythonFs.remove(filename);
+            }
+            return alert(config.translate.alerts.cant_add_file + filename + '\n' + e.message);
+        }
+        if (filename == 'main.py') {
+            // TODO: This will probably break in IE10
+            var utf8 = new TextDecoder('utf-8').decode(fileBytes);
+            EDITOR.setCode(utf8);
+        }
+    }
+
     // Update the widget that shows how much space is used in the filesystem
     function updateStorageBar() {
         var modulesSize = 0;
         var otherSize = 0;
         var mainSize = 0;
-        var totalSpace = micropythonFs.getFsSize();
+        var totalSpace = micropythonFs.getStorageSize();
         try {
             micropythonFs.write('main.py', EDITOR.getCode());
             mainSize = micropythonFs.size('main.py');
@@ -463,48 +621,50 @@ function web_editor(config) {
         }
     }
 
-    // Function for adding file to filesystem
-    function filesystemAdd(files, updateUiCb) {
-        Array.from(files).forEach(function(file) {
-            // Check if file already exists
-            if (micropythonFs.exists(file.name) && file.name !== 'main.py') {
-                alert(file.name + ' already exists in the file system!');
-                return;
-            }
-            // Attempt to add file to FS
-            var fileReader = new FileReader();
-            fileReader.onloadend = function (e) {
-                var arrayBuffer = new Uint8Array(e.target.result);
-                // Check if file is main.py
-                if (file.name == 'main.py') {
-                    if (!confirm(config.translate.confirms.main_replace)) {
-                        return;
-                    }
-                    // TODO: This will probably break in IE10
-                    var utf8 = new TextDecoder('utf-8').decode(arrayBuffer);
-                    EDITOR.setCode(utf8);
-                }
-                try {
-                    micropythonFs.write(file.name, arrayBuffer);
-                    // Check if the filesystem has run out of space
-                    micropythonFs.getIntelHex();
-                } catch(e) {
-                    if (micropythonFs.exists(file.name)) {
-                        micropythonFs.remove(file.name);
-                    }
-                    return alert(config.translate.alerts.cant_add_file + file.name + '\n' + e.message);
-                }
-                updateUiCb(file.name, file.size);
-            };
-            fileReader.readAsArrayBuffer(file);
+    // Regenerate the table showing the file list and call for the storage bar to be updated
+    var updateFileTables = function() {
+        // Delete the current table body content and add rows file by file
+        $('.fs-file-list table tbody').empty();
+        micropythonFs.ls().forEach(function(filename) {
+            var pseudoUniqueId = Math.random().toString(36).substr(2, 9);
+            // Check for main.py to exclude it from the table list
+            if (filename === 'main.py') return;
+            var fileType = (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename) : "";
+            $('.fs-file-list table tbody').append(
+                '<tr><td>' + filename + '</td>' +
+                '<td>' + fileType + '</td>' +
+                '<td>' + (micropythonFs.size(filename)/1024).toFixed(2) + ' Kb</td>' +
+                '<td><button id="' + pseudoUniqueId + '" class="fs-remove-button">Remove</button></td></tr>'
+            );
+            $('#' + pseudoUniqueId).click(function(e) {
+                micropythonFs.remove(filename);
+                updateFileTables();
+            });
         });
-    }
+        // Hide the table if it is empty
+        var fileRowsInTable = $('#fs-file-list>table>tbody').has('tr').length;
+        if (!fileRowsInTable) {
+            $('#fs-file-list>table').css('display', 'none');
+        } else {
+            $('#fs-file-list>table').css('display', '');
+        }
+        updateStorageBar();
+    };
 
     // Generates the text for a hex file with MicroPython and the user code
     function generateFullHexStr() {
         var fullHexStr = '';
         try {
-            micropythonFs.write('main.py', EDITOR.getCode());
+            // Remove main.py if editor content is empty to download a hex file
+            // that includes the filesystem but doesn't try to run any code
+            if (!EDITOR.getCode()) {
+                if (micropythonFs.exists('main.py')) {
+                    micropythonFs.remove('main.py');
+                }
+            } else {
+                micropythonFs.write('main.py', EDITOR.getCode());
+            }
+            // Generate hex file
             fullHexStr = micropythonFs.getIntelHex();
         } catch(e) {
             // We generate a user readable error here to be caught and displayed
@@ -549,35 +709,6 @@ function web_editor(config) {
 
     // Describes what to do when the load button is clicked.
     function doLoad() {
-        var updateTableVisibility = function() {
-            // Hide the table if it is empty
-            var fileRowsInTable = $('#fs-file-list>table>tbody').has('tr').length;
-            if (!fileRowsInTable) {
-                $('#fs-file-list>table').css('display', 'none');
-            } else {
-                $('#fs-file-list>table').css('display', '');
-            }
-        };
-
-        var fsAddFileTableRow = function(rowFilename) {
-            var pseudoUniqueId = Math.random().toString(36).substr(2, 9)
-            // Protect main.py so don't include it in the UI
-            if (rowFilename === 'main.py') return;
-            var fileType = (/[.]/.exec(rowFilename)) ? /[^.]+$/.exec(rowFilename) : "";
-            $('.fs-file-list table tbody').append(
-                '<tr id="row-' + pseudoUniqueId + '"><td>' + rowFilename + '</td>' +
-                '<td>' + fileType + '</td>' +
-                '<td>' + (micropythonFs.size(rowFilename)/1024).toFixed(2) + ' Kb</td>' +
-                '<td><button id="' + pseudoUniqueId + '" class="fs-remove-button">Remove</button></td></tr>'
-            );
-            $('#' + pseudoUniqueId).click(function(e){
-                micropythonFs.remove(rowFilename);
-                $('#row-' + pseudoUniqueId).remove();
-                updateStorageBar();
-                updateTableVisibility();
-            });
-        };
-
         var template = $('#load-template').html();
         Mustache.parse(template);
         vex.open({
@@ -598,49 +729,52 @@ function web_editor(config) {
                     vex.close();
                     EDITOR.focus();
                 });
-                $(vexContent).find('#load-form-form').on('submit', function(e){
+                $('#file-upload-link').click(function() {
+                    $('#file-upload-input').trigger('click');
+                });
+                $('#file-upload-input').on('change', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if(e.target[0].files.length === 1) {
-                        var f = e.target[0].files[0];
-                        var ext = (/[.]/.exec(f.name)) ? /[^.]+$/.exec(f.name) : null;
-                        var reader = new FileReader();
-                        if (ext == 'py') {
-                            setName(f.name.replace('.py', ''));
-                            reader.onload = function(e) {
-                                loadPy(f.name, e.target.result);
-                            };
-                            reader.readAsText(f);
-                        } else if (ext == 'hex') {
-                            setName(f.name.replace('.hex', ''));
-                            reader.onload = function(e) {
-                                loadHex(f.name, e.target.result);
-                            };
-                            reader.readAsText(f);
-                        }
+
+                    var inputFile = this;
+                    if (inputFile.files.length === 1) {
+                        var f = inputFile.files[0];
+                            var ext = (/[.]/.exec(f.name)) ? /[^.]+$/.exec(f.name) : null;
+                            var reader = new FileReader();
+                            if (ext == 'py') {
+                                reader.onload = function(e) {
+                                    loadPy(f.name, e.target.result);
+                                };
+                                reader.readAsText(f);
+                            } else if (ext == 'hex') {
+                                reader.onload = function(e) {
+                                    loadHex(f.name, e.target.result);
+                                };
+                                reader.readAsText(f);
+                            }
                     }
+                    inputFile.value = '';
                     vex.close();
                     EDITOR.focus();
                     return false;
                 });
-                $(vexContent).find('#fs-form').on('submit', function(e){
+                $('#fs-file-upload-button').click(function() {
+                    $('#fs-file-upload-input').trigger('click');
+                });
+                $('#fs-file-upload-input').on('change', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var inputFile = e.target[1];
-                    var files = inputFile.files;
-                    filesystemAdd(files, function(addedFilename) {
-                        fsAddFileTableRow(addedFilename);
-                        updateStorageBar();
-                        updateTableVisibility();
+                    var inputFile = this;
+                    Array.from(inputFile.files).forEach(function(file) {
+                        var fileReader = new FileReader();
+                        fileReader.onload = function(e) {
+                            loadFileToFilesystem(file.name, new Uint8Array(e.target.result));
+                            updateFileTables();
+                        };
+                        fileReader.readAsArrayBuffer(file);
                     });
                     inputFile.value = '';
-                });
-                $('#fs-form-file-upload-button').click(function() {
-                    $('#fs-form-file-upload').trigger('click');
-                });
-                $('#fs-form-file-upload').on('change', function() {
-                    $('#fs-form-submit-button').trigger('click');
                 });
             }
         });
@@ -648,11 +782,7 @@ function web_editor(config) {
             $('.load-drag-target').toggle();
             $('.load-form').toggle();
         });
-        updateStorageBar();
-        micropythonFs.ls().forEach(function(filename) {
-            fsAddFileTableRow(filename);
-        });
-        updateTableVisibility();
+        updateFileTables();
     }
 
     // Triggered when a user clicks the blockly button. Toggles blocks on/off.
@@ -698,10 +828,10 @@ function web_editor(config) {
                         scaleSpeed: zoomScaleSteps + 1.0
                     }
                 });
-                var x = function myUpdateFunction(event) {
+                var myUpdateFunction = function(event) {
                     var code = Blockly.Python.workspaceToCode(workspace);
                     EDITOR.setCode(code);
-                }
+                };
                 // Resize blockly
                 var element = document.getElementById('blockly');
                 new ResizeSensor(element, function() {
@@ -718,7 +848,6 @@ function web_editor(config) {
     function doSnippets() {
         // Snippets are triggered by typing a keyword followed by pressing TAB.
         // For example, type "wh" followed by TAB.
-        var snippetManager = ace.require("ace/snippets").snippetManager;
         var template = $('#snippet-template').html();
         Mustache.parse(template);
         var context = {
@@ -727,7 +856,7 @@ function web_editor(config) {
             'instructions': config.translate.code_snippets.instructions,
             'trigger_heading': config.translate.code_snippets.trigger_heading,
             'description_heading': config.translate.code_snippets.description_heading,
-            'snippets': snippetManager.snippetMap.python,
+            'snippets': EDITOR.getSnippets(),
             'describe': function() {
                 return function(text, render) {
                     var name = render(text);
@@ -798,13 +927,11 @@ function web_editor(config) {
         var ext = (/[.]/.exec(file.name)) ? /[^.]+$/.exec(file.name) : null;
         var reader = new FileReader();
         if (ext == 'py') {
-            setName(file.name.replace('.py', ''));
             reader.onload = function(e) {
                 loadPy(file.name, e.target.result);
             };
             reader.readAsText(file);
         } else if (ext == 'hex') {
-            setName(file.name.replace('.hex', ''));
             reader.onload = function(e) {
                 loadHex(file.name, e.target.result);
             };
@@ -950,16 +1077,17 @@ function web_editor(config) {
                 $("#flashing-overlay-error").html('<div>' + e + '</div><div>Please restart your micro:bit and try again</div><a href="#" onclick="flashErrorClose()">Close</a>');
             });
         });
-  }
+    }
 
-function setupHterm(){
+    function setupHterm(){
                hterm.defaultStorage = new lib.Storage.Local();
-               const t = new hterm.Terminal("opt_profileName");
+               var t = new hterm.Terminal("opt_profileName");
+               t.options_.cursorVisible = true;
 
                var daplinkReceived = false;
 
                t.onTerminalReady = function() {
-                   const io = t.io.push();
+                   var io = t.io.push();
 
                    io.onVTKeystroke = function(str) {
                         window.daplink.serialWrite(str);
@@ -1002,8 +1130,9 @@ function setupHterm(){
                             if(attempt == 5 || daplinkReceived) clearInterval(getPrompt);
                         }, 200);
                */
-}
-
+    }
+    
+    // Join up the buttons in the user interface with some functions for
     // handling what to do when they're clicked.
     function setupButtons() {
         $("#command-download").click(function () {
@@ -1033,10 +1162,28 @@ function setupHterm(){
         $("#request-repl").click(function () {
             daplink.serialWrite("\x03"); 
         });
-        $("#command-help").click(function () {
-            $(".helpsupport_container").toggle();
+        $("#command-help").click(function (e) {
+            // Show help
+            $(".helpsupport_container").css("top", $("#command-help").offset().top + $("#toolbox").height() + 10);
+            $(".helpsupport_container").css("left", $("#command-help").offset().left);
+
+            // Toggle visibility
+            if($(".helpsupport_container").css("display") == "none"){
+                $(".helpsupport_container").css("display", "flex");
+                $(".helpsupport_container").css("display", "-ms-flexbox"); // IE10 support
+            } else {
+                $(".helpsupport_container").css("display", "none");
+            }
+
+            // Stop immediate closure
+            e.stopImmediatePropagation();
         });
-        $(".helpsupport_container").hide();
+        // Add document click listener
+        document.body.addEventListener('click',function(event) {
+            // Close helpsupport if the click isn't on a descendent of #command-help
+            if($(event.target).closest('.helpsupport_container').length == 0 || $(event.target).prop("tagName").toLowerCase() === 'a')
+                $(".helpsupport_container").css("display", "none");
+        });
     }
 
     // Extracts the query string and turns it into an object of key/value
@@ -1065,40 +1212,10 @@ function setupHterm(){
         return project;
     }
 
-    // Checks if this is the latest version of the editor. If not display an
-    // appropriate message.
-    function checkVersion(qs) {
-        $.getJSON('../manifest.json').done(function(data) {
-            if(data.latest === VERSION) {
-                // Already at the latest version, so ignore.
-                return;
-            } else {
-                // This isn't the latest version. Display the message bar with
-                // helpful information.
-                if(qs.force) {
-                    // The inbound link tells us to force use of this editor.
-                    // DO SOMETHING APPROPRIATE HERE? IF ANYTHING?
-                }
-                var template = $('#messagebar-template').html();
-                Mustache.parse(template);
-                var context = config.translate.messagebar;
-                var messagebar = $('#messagebar');
-                messagebar.html(Mustache.render(template, context));
-                messagebar.show();
-                $('#messagebar-link').attr('href',
-                                           window.location.href.replace(VERSION, data.latest));
-                $('#messagebar-close').on('click', function(e) {
-                    $('#messagebar').hide();
-                });
-            }
-        });
-    }
-
     var qs = get_qs_context();
     var migration = get_migration();
     setupFeatureFlags();
     setupEditor(qs, migration);
-    checkVersion(qs);
     setupButtons();
     window.onload = function() {
         // Firmware at the end of the HTML file has to be loaded first

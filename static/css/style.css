@@ -417,18 +417,6 @@ a.command:hover {
     background-repeat: repeat;
 }
 
-#messagebar {
-    display: none;
-    background-color: #ffcc33;
-    padding: 0.75em;
-    font-family: "Segoe UI Light", "Segoe UI", "Segoe WP Light", "Segoe WP", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", sans-serif;
-}
-
-#messagebar a, #messagebar a.visited {
-    color: #336699;
-    font-weight: bold;
-}
-
 .load-form {
     display: none;
 }
@@ -472,9 +460,13 @@ div.load-form {
 }
 
 .helpsupport_container {
+        position: absolute;
         margin: auto auto auto auto;
         display: none;
         padding-right: 1em;
+        z-index: 999;
+        background-color: #f2f2f2;
+        border-radius: 0.5rem;
 }
 
 #flashing-overlay-container {
@@ -532,12 +524,12 @@ div.load-form {
     background-color:#f20000;
 }
 
-#fs-form-file-upload-button {
+#fs-file-upload-button {
     border-radius: 9px;
     height: 2.0em;
     margin: 16px 0px 0px 0px;
 }
-#fs-form-file-upload-button:hover {
+#fs-file-upload-button:hover {
     background-color: #1f669d;
     color: #ffffff;
 }
