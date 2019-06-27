@@ -31,12 +31,35 @@ function pythonEditor(id) {
     editor.fontSizeStep = 4;
 
     // Represents the ACE based editor.
+    var langTools = ace.require("ace/ext/language_tools");
     var ACE = ace.edit(id);  // The editor is in the tag with the referenced id.
     ACE.setOptions({
-        enableSnippets: true  // Enable code snippets.
+        enableSnippets: true,  // Enable code snippets.
+        enableBasicAutocompletion: true, // Enable (automatic) autocompletion
+        enableLiveAutocompletion: true
     });
-    ACE.setTheme("ace/theme/kr_theme");  // Make it look nice.
-    ACE.getSession().setMode("ace/mode/python");  // We're editing Python.
+    ACE.$blockScrolling = Infinity; // Silences the 'blockScrolling' warning
+
+    var horizontalWordList = populateWordList();
+
+    var staticWordCompleter = {
+        identifierRegexps: [/[a-zA-Z_0-9\.\-\u00A2-\uFFFF]/],
+        getCompletions: function(editor, session, pos, prefix, callback) {
+            var wordList = horizontalWordList;
+            
+            callback(null, wordList.map(function(word) {
+                return {
+                    caption: word,
+                    value: word,
+                    meta: "static"
+                };
+            }));
+        }
+    }
+    langTools.setCompleters([langTools.keyWordCompleter, langTools.textCompleter, staticWordCompleter])
+    
+    ACE.setTheme("ace/theme/kr_theme_legacy");  // Make it look nice.
+    ACE.getSession().setMode("ace/mode/python_microbit");  // We're editing Python.
     ACE.getSession().setTabSize(4); // Tab=4 spaces.
     ACE.getSession().setUseSoftTabs(true); // Tabs are really spaces.
     ACE.setFontSize(editor.initialFontSize);
@@ -65,13 +88,13 @@ function pythonEditor(id) {
     // Return details of all the snippets this editor knows about.
     editor.getSnippets = function() {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        return snippetManager.snippetMap.python;
+        return snippetManager.snippetMap.python_microbit;
     };
 
     // Triggers a snippet by name in the editor.
     editor.triggerSnippet = function(snippet) {
         var snippetManager = ace.require("ace/snippets").snippetManager;
-        snippet = snippetManager.snippetNameMap.python[snippet];
+        snippet = snippetManager.snippetNameMap.python_microbit[snippet];
         if (snippet) {
             snippetManager.insertSnippet(ACE, snippet.content);
         }
@@ -128,6 +151,172 @@ if (typeof module !== 'undefined' && module.exports) {
     global.pythonEditor = pythonEditor;
 }
 
+
+/*
+This code generates a list of words for the autocomplete.
+*/
+function populateWordList(){
+    var words = {
+        "microbit" : {
+            "Image" : ['ALL_CLOCKS', 'ANGRY', 'ARROW_E', 'ARROW_N', 'ARROW_NE', 'ARROW_NW', 'ARROW_S', 'ARROW_SE', 'ARROW_SW', 'ARROW_W', 'ASLEEP', 'BUTTERFLY', 'CHESSBOARD', 'CLOCK1', 'CLOCK10', 'CLOCK11', 'CLOCK12', 'CLOCK2', 'CLOCK3', 'CLOCK4', 'CLOCK5', 'CLOCK6', 'CLOCK7', 'CLOCK8', 'CLOCK9', 'CONFUSED', 'COW', 'DIAMOND', 'DIAMOND_SMALL', 'DUCK', 'FABULOUS', 'GHOST', 'GIRAFFE', 'HAPPY', 'HEART', 'HEART_SMALL', 'HOUSE', 'MEH', 'MUSIC_CROTCHET', 'MUSIC_QUAVER', 'MUSIC_QUAVERS', 'NO', 'PACMAN', 'PITCHFORK', 'RABBIT', 'ROLLERSKATE', 'SAD', 'SILLY', 'SKULL', 'SMILE', 'SNAKE', 'SQUARE', 'SQUARE_SMALL', 'STICKFIGURE', 'SURPRISED', 'SWORD', 'TARGET', 'TORTOISE', 'TRIANGLE', 'TRIANGLE_LEFT', 'TSHIRT', 'UMBRELLA', 'XMAS', 'YES'],
+            "pin0" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin1" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin2" : ["is_touched", "read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin3" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin4" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin5" : ["read_digital", "write_digital"],
+            "pin6" : ["read_digital", "write_digital"],
+            "pin7" : ["read_digital", "write_digital"],
+            "pin8" : ["read_digital", "write_digital"],
+            "pin9" : ["read_digital", "write_digital"],
+            "pin10" : ["read_analog", "read_digital", "set_analog_period", "set_analog_period_microseconds", "write_analog", "write_digital"],
+            "pin11" : ["read_digital", "write_digital"],
+            "pin12" : ["read_digital", "write_digital"],
+            "pin13" : ["read_digital", "write_digital"],
+            "pin14" : ["read_digital", "write_digital"],
+            "pin15" : ["read_digital", "write_digital"],
+            "pin16" : ["read_digital", "write_digital"],
+            "pin19" : ["read_digital", "write_digital"],
+            "pin20" : ["read_digital", "write_digital"],
+            "accelerometer" : ["current_gesture", "get_gestures", "get_values", "get_x", "get_y", "get_z", "was_gesture"],
+            "button_a" : ["get_presses", "is_pressed", "was_pressed"],
+            "button_b" : ["get_presses", "is_pressed", "was_pressed"],
+            "compass" : ["calibrate", "clear_calibration", "get_field_strength", "get_x", "get_y", "get_z", "heading", "is_calibrated"],
+            "display" : ["clear", "get_pixel", "is_on", "off", "on", "read_light_level", "scroll", "set_pixel", "show"],
+            "i2c" : ["init", "read", "scan", "write"],
+            "panic" : "",
+            "reset" : "",
+            "running_time" : "",
+            "sleep" : "",
+            "spi" : ["init", "read", "write", "write_readinto"],
+            "temperature" : "",
+            "uart" : ["any", "init", "read", "readall", "readline", "write"]
+        },
+        "audio" : ["play", "AudioFrame"],
+        "machine" : ["disable_irq", "enable_irq", "freq", "reset", "time_pulse_us", "unique_id"],
+        "micropython" : ["const", "heap_lock", "heap_unlock", "kbd_intr", "mem_info", "opt_level", "qstr_info", "stack_use"],
+        "music" : ["BADDY", "BA_DING", "BIRTHDAY", "BLUES", "CHASE", "DADADADUM", "ENTERTAINER", "FUNERAL", "FUNK", "JUMP_DOWN", "JUMP_UP", "NYAN", "ODE", "POWER_DOWN", "POWER_UP", "PRELUDE", "PUNCHLINE", "PYTHON", "RINGTONE", "WAWAWAWAA", "WEDDING", "get_tempo", "pitch", "play", "reset", "set_temp", "stop"],
+        "speech" : ["pronounce", "say", "sing", "translate"],
+        "radio" : ["RATE_1MBIT", "RATE_250KBIT", "RATE_2MBIT", "config", "off", "on", "receive", "receive_bytes", "receive_bytes_into", "receive_full", "reset", "send", "send_bytes"],
+        "os" : ["remove", "listdir", "size", "uname"],
+        "time" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
+        "utime" : ["sleep", "sleep_ms", "sleep_us", "ticks_ms", "ticks_us", "ticks_add", "ticks_diff"],
+        "ucollections" : ["namedtuple", "OrderedDict"],
+        "collections" : ["namedtuple", "OrderedDict"],
+        "array" : ["array"],
+        "math" : ["e", "pi", "sqrt", "pow", "exp", "log", "cos", "sin", "tan", "acos", "asin", "atan", "atan2", "ceil", "copysign", "fabs", "floor", "fmod", "frexp", "ldexp", "modf", "isfinite", "isinf", "isnan", "trunc", "radians", "degrees"],
+        "random" : ["getrandbits", "seed", "randrange", "randint", "choice", "random", "uniform"],
+        "ustruct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
+        "struct" : ["calcsize", "pack", "pack_into", "unpack", "unpack_from"],
+        "sys" : ["version", "version_info", "implementation", "platform", "byteorder", "exit", "print_exception"],
+        "gc" : ["collect", "disable", "enable", "isenabled", "mem_free", "mem_alloc", "threshold"],
+        "neopixel" : {
+            "NeoPixel" : ["clear", "show"]
+        }
+    };
+
+    var wordsHorizontal = [];
+    Object.keys(words).forEach(function(module){
+        wordsHorizontal.push(module);
+        if (Array.isArray(words[module])){
+            words[module].forEach(function(func){
+                wordsHorizontal.push(module + "." + func);
+            });
+        }else{
+            Object.keys(words[module]).forEach(function(sub){
+                wordsHorizontal.push(module + "." + sub);
+                if (Array.isArray(words[module][sub])){
+                    words[module][sub].forEach(function(func){
+                        wordsHorizontal.push(module + "." + sub + "." + func);
+                        wordsHorizontal.push(sub + "." + func);
+                    });
+                }
+            });
+        }
+    });
+    return (wordsHorizontal);
+}
+
+
+/*
+ * Returns an object to wrap around Blockly.
+ */
+function blocks() {
+    'use strict';
+
+    var blocklyWrapper = {};
+    var resizeSensorInstance = null;
+    // Stores the Blockly workspace created during injection 
+    var workspace = null;
+
+    blocklyWrapper.init = function() {
+        // Lazy loading all the JS files
+        script('blockly/blockly_compressed.js');
+        script('blockly/blocks_compressed.js');
+        script('blockly/python_compressed.js');
+        script('microbit_blocks/blocks/microbit.js');
+        script('microbit_blocks/generators/accelerometer.js');
+        script('microbit_blocks/generators/buttons.js');
+        script('microbit_blocks/generators/compass.js');
+        script('microbit_blocks/generators/display.js');
+        script('microbit_blocks/generators/image.js');
+        script('microbit_blocks/generators/microbit.js');
+        script('microbit_blocks/generators/music.js');
+        script('microbit_blocks/generators/neopixel.js');
+        script('microbit_blocks/generators/pins.js');
+        script('microbit_blocks/generators/radio.js');
+        script('microbit_blocks/generators/speech.js');
+        script('microbit_blocks/generators/python.js');
+        script('blockly/msg/js/en.js');
+        script('microbit_blocks/messages/en/messages.js');
+    };
+
+    blocklyWrapper.inject = function(blocklyElement, toolboxElement, zoomLevel, zoomScaleSteps) {
+        workspace = Blockly.inject(blocklyElement, {
+            toolbox: toolboxElement,
+            zoom: {
+                controls: false,
+                wheel: false,
+                startScale: zoomLevel,
+                scaleSpeed: zoomScaleSteps + 1.0
+            }
+        });
+        // Resize blockly
+        resizeSensorInstance = new ResizeSensor(blocklyElement, function() {
+            Blockly.svgResize(workspace);
+        });
+    };
+
+    blocklyWrapper.getCode = function() {
+        return workspace ? Blockly.Python.workspaceToCode(workspace) : 'Blockly not injected';
+    };
+
+    blocklyWrapper.addCodeChangeListener = function(callback) {
+        if (workspace) {
+            workspace.addChangeListener(function(event) {
+                var code = blocklyWrapper.getCode();
+                callback(code);
+            });
+        } else {
+            throw new Error('Trying to add a Blockly change listener before injection.');
+        }
+    };
+
+    blocklyWrapper.zoomIn = function() {
+        if (workspace) {
+            Blockly.getMainWorkspace().zoomCenter(1);
+        }
+    };
+
+    blocklyWrapper.zoomOut = function() {
+        if (workspace) {
+            Blockly.getMainWorkspace().zoomCenter(-1);
+        }
+    };
+
+    return blocklyWrapper;
+}
+
 /*
 The following code contains the various functions that connect the behaviour of
 the editor to the DOM (web-page).
@@ -139,6 +328,8 @@ function web_editor(config) {
 
     // Global (useful for testing) instance of the ACE wrapper object
     window.EDITOR = pythonEditor('editor');
+
+    var BLOCKS = blocks();
 
     // Indicates if there are unsaved changes to the content of the editor.
     var dirty = false;
@@ -176,9 +367,8 @@ function web_editor(config) {
         }
         setFontSize(fontSize);
         // Change Blockly zoom
-        var workspace = Blockly.getMainWorkspace();
-        if (workspace && continueZooming) {
-            Blockly.getMainWorkspace().zoomCenter(1);
+        if (continueZooming) {
+            BLOCKS.zoomIn();
         }
     }
 
@@ -195,9 +385,8 @@ function web_editor(config) {
         }
         setFontSize(fontSize);
         // Change Blockly zoom
-        var workspace = Blockly.getMainWorkspace();
-        if (workspace && continueZooming) {
-            Blockly.getMainWorkspace().zoomCenter(-1);
+        if (continueZooming) {
+            BLOCKS.zoomOut();
         }
     }
 
@@ -206,25 +395,7 @@ function web_editor(config) {
     function setupFeatureFlags() {
         if(config.flags.blocks) {
             $("#command-blockly").removeClass('hidden');
-            // Add includes 
-            script('blockly/blockly_compressed.js');
-            script('blockly/blocks_compressed.js');
-            script('blockly/python_compressed.js');
-            script('microbit_blocks/blocks/microbit.js');
-            script('microbit_blocks/generators/accelerometer.js');
-            script('microbit_blocks/generators/buttons.js');
-            script('microbit_blocks/generators/compass.js');
-            script('microbit_blocks/generators/display.js');
-            script('microbit_blocks/generators/image.js');
-            script('microbit_blocks/generators/microbit.js');
-            script('microbit_blocks/generators/music.js');
-            script('microbit_blocks/generators/neopixel.js');
-            script('microbit_blocks/generators/pins.js');
-            script('microbit_blocks/generators/radio.js');
-            script('microbit_blocks/generators/speech.js');
-            script('microbit_blocks/generators/python.js');
-            script('blockly/msg/js/en.js');
-            script('microbit_blocks/messages/en/messages.js');
+            BLOCKS.init();
         }
         if(config.flags.snippets) {
             $("#command-snippet").removeClass('hidden');
@@ -239,11 +410,11 @@ function web_editor(config) {
         }).map(function(f) {
             return encodeURIComponent(f) + "=true";
         }).join("&");
-        helpAnchor.attr("href", helpAnchor.attr("href") + "?" + featureQueryString); 
+        helpAnchor.attr("href", helpAnchor.attr("href") + "?" + featureQueryString);
     }
 
     // Update the docs link to append MicroPython version
-    var docsAnchor = $("#docs-link"); 
+    var docsAnchor = $("#docs-link");
     docsAnchor.attr("href", docsAnchor.attr("href") + "en/" + "v" + UPY_VERSION);
 
     // This function is called to initialise the editor. It sets things up so
@@ -284,6 +455,7 @@ function web_editor(config) {
         // If configured as experimental update editor background to indicate it
         if(config.flags.experimental) {
             EDITOR.ACE.renderer.scroller.style.backgroundImage = "url('static/img/experimental.png')";
+            $("#known-issues").removeClass('hidden');
         }
         // Configure the zoom related buttons.
         $("#zoom-in").click(function (e) {
@@ -401,6 +573,9 @@ function web_editor(config) {
                     $('#load-drag-target').removeClass('is-dragover');
                 })
                 .on('drop', function(e) {
+                    // Dispatch an event to allow others to listen to it
+                    var event = new CustomEvent("load-drop", { detail: e.originalEvent.dataTransfer.files[0] });
+                    document.dispatchEvent(event);
                     doDrop(e);
                     vex.close();
                     EDITOR.focus();
@@ -485,28 +660,15 @@ function web_editor(config) {
                 var zoomScaleSteps = 0.2;
                 var fontSteps = (getFontSize() - EDITOR.initialFontSize) / EDITOR.fontSizeStep;
                 var zoomLevel = (fontSteps * zoomScaleSteps) + 1.0;
-                var workspace = Blockly.inject('blockly', {
-                    toolbox: document.getElementById('blockly-toolbox'),
-                    zoom: {
-                        controls: false,
-                        wheel: false,
-                        startScale: zoomLevel,
-                        scaleSpeed: zoomScaleSteps + 1.0
-                    }
-                });
-                var myUpdateFunction = function(event) {
-                    var code = Blockly.Python.workspaceToCode(workspace);
+                var blocklyElement = document.getElementById('blockly');
+                var toolboxElement = document.getElementById('blockly-toolbox');
+                BLOCKS.inject(blocklyElement, toolboxElement, zoomLevel, zoomScaleSteps);
+                BLOCKS.addCodeChangeListener(function(code) {
                     EDITOR.setCode(code);
-                };
-                // Resize blockly
-                var element = document.getElementById('blockly');
-                new ResizeSensor(element, function() {
-                    Blockly.svgResize(workspace);
                 });
-                workspace.addChangeListener(myUpdateFunction);
             }
             // Set editor to current state of blocks.
-            EDITOR.setCode(Blockly.Python.workspaceToCode(workspace));
+            EDITOR.setCode(BLOCKS.getCode());
         }
     }
 
@@ -514,7 +676,6 @@ function web_editor(config) {
     function doSnippets() {
         // Snippets are triggered by typing a keyword followed by pressing TAB.
         // For example, type "wh" followed by TAB.
-        var snippetManager = ace.require("ace/snippets").snippetManager;
         var template = $('#snippet-template').html();
         Mustache.parse(template);
         var context = {
@@ -523,7 +684,7 @@ function web_editor(config) {
             'instructions': config.translate.code_snippets.instructions,
             'trigger_heading': config.translate.code_snippets.trigger_heading,
             'description_heading': config.translate.code_snippets.description_heading,
-            'snippets': snippetManager.snippetMap.python,
+            'snippets': EDITOR.getSnippets(),
             'describe': function() {
                 return function(text, render) {
                     var name = render(text);
@@ -642,14 +803,45 @@ function web_editor(config) {
         $("#command-share").click(function () {
             doShare();
         });
-        $("#command-help").click(function () {
+
+        function formatHelpPanel(){
+            if($(".helpsupport_container").offset().left !== $("#command-help").offset().left && $(window).width() > 620){
+                $(".helpsupport_container").css("top", $("#command-help").offset().top + $("#toolbox").height() + 10);
+                $(".helpsupport_container").css("left", $("#command-help").offset().left);
+            }
+            else if($(window).width() < 620){
+                $(".helpsupport_container").css("left", $("#command-help").offset().left - 200);
+                $(".helpsupport_container").css("top", $("#command-help").offset().top + $("#toolbox").height() + 10);
+            }
+        };
+
+        $("#command-help").click(function (e) {
+            // Show help
+            formatHelpPanel();
+            // Toggle visibility
             if($(".helpsupport_container").css("display") == "none"){
                 $(".helpsupport_container").css("display", "flex");
+                $(".helpsupport_container").css("display", "-ms-flexbox"); // IE10 support
             } else {
                 $(".helpsupport_container").css("display", "none");
             }
+
+            // Stop immediate closure
+            e.stopImmediatePropagation();
         });
-        $(".helpsupport_container").hide();
+
+        window.addEventListener('resize', function(){
+            if($(".helpsupport_container").is(":visible")){
+            formatHelpPanel();
+            }
+        });
+
+        // Add document click listener
+        document.body.addEventListener('click',function(event) {
+            // Close helpsupport if the click isn't on a descendent of #command-help
+            if($(event.target).closest('.helpsupport_container').length == 0 || $(event.target).prop("tagName").toLowerCase() === 'a')
+                $(".helpsupport_container").css("display", "none");
+        });
     }
 
     // Extracts the query string and turns it into an object of key/value
